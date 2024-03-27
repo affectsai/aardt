@@ -61,6 +61,14 @@ class AscertainTrial(AERTrial):
 
     @staticmethod
     def _load_ecg_signal_data(signal_data_file):
+        """
+        Loads the ECG signal data from the given ASCERTAIN matlab file, and returns it as a 3xN
+        numpy array. The first row contains the signal timestamp data in UNIX Epoch time. The
+        second and third rows contain the two ECG signal channels from the dataset.
+
+        :param signal_data_file: The ECG_ClipXX.mat file for this trial
+        :return:
+        """
         start_time_arr = signal_data_file['timeECG'][0]
         start_time = datetime(
             int(start_time_arr[0]),

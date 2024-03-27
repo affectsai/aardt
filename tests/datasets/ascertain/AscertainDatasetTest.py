@@ -19,7 +19,7 @@ import random
 
 import numpy as np
 
-from aer_datasets.datasets import AscertainDataset
+from aer_datasets.datasets.ascertain import AscertainDataset
 from aer_datasets.datasets.ascertain.AscertainDataset import DEFAULT_ASCERTAIN_PATH, ASCERTAIN_NUM_MEDIA_FILES, \
     ASCERTAIN_NUM_PARTICIPANTS, ASCERTAIN_RAW_FOLDER
 

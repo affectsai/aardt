@@ -14,7 +14,7 @@
 
 import numpy as np
 
-from aer_datasets.preprocessors import SignalPreprocessor
+from .SignalPreprocessor import SignalPreprocessor
 
 
 class FixedDurationPreprocessor(SignalPreprocessor):

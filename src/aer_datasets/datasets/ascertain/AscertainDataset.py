@@ -36,10 +36,10 @@ class AscertainDataset(AERDataset):
         :param signals: A list of signals to load, e.g. ['ECG','EEG'] to load ECG and EEG data. If None, the folder
         given by ascertain_path will be checked for subfolders named '<SIGNAL>Data', and each one found will be loaded.
         For example, if ascertain/ECGData/ is found, the ECG is automatically loaded.
-        :param participant_offset: Constant value added to each participant identifier within ASCERTAIN. For example,
-        if participant_offset is 32, then Participant 1 within the ASCERTAIN raw data will be returned as Participant 33.
-        :param mediafile_offset: Constant value added to each media identifier within ASCERTAIN. For example, if
-        mediafile_offset is 12, then Movie 1 within the ASCERTAIN raw data will be reported as Media ID 13.
+        :param participant_offset: Constant value added to each participant identifier within this dataset. For example,
+        if participant_offset is 32, then Participant 1 from this dataset's raw data will be returned as Participant 33.
+        :param mediafile_offset: Constant value added to each media identifier within this dataset. For example, if
+        mediafile_offset is 12, then Movie 1 from this dataset's raw data will be reported as Media ID 13.
         """
         super().__init__(signals, participant_offset, mediafile_offset)
         logger.debug(f'Loading ASCERTAIN from {ascertain_path} with signals {signals}.')
@@ -60,6 +60,9 @@ class AscertainDataset(AERDataset):
             for p in sorted(self.ascertain_raw_path.rglob("*Data")):
                 if p.is_dir():
                     self.signals.append(str(p.name).replace("Data", ""))
+
+    def preload(self):
+        pass
 
     def load_trials(self):
         # Load trial data...

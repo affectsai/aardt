@@ -29,6 +29,10 @@ class AERDataset(metaclass=abc.ABCMeta):
         self._all_trials = []
 
     @abc.abstractmethod
+    def preload(self):
+        pass
+
+    @abc.abstractmethod
     def load_trials(self):
         pass
 
