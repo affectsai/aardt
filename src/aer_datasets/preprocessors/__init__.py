@@ -13,5 +13,5 @@
 #  under the License.
 
 
-from .SignalPreprocessor import SignalPreprocessor
 from .FixedDurationPreprocessor import FixedDurationPreprocessor
+from .SignalPreprocessor import SignalPreprocessor

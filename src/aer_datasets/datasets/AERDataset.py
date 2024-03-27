@@ -63,4 +63,3 @@ class AERDataset(metaclass=abc.ABCMeta):
     @property
     def signal_preprocessors(self):
         return self._signal_preprocessors
-

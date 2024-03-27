@@ -12,8 +12,6 @@
 #  express or implied. See the License for the specific language governing permissions and limitations
 #  under the License.
 
-from abc import ABCMeta, abstractmethod
-
 import numpy as np
 
 from aer_datasets.preprocessors import SignalPreprocessor
@@ -46,6 +44,6 @@ class FixedDurationPreprocessor(SignalPreprocessor):
         target_samples = self.signal_duration * self.sample_rate
 
         if num_samples >= target_samples:
-            return signal[:, np.arange(num_samples-target_samples, num_samples)]
+            return signal[:, np.arange(num_samples - target_samples, num_samples)]
         else:
-            return np.concatenate([np.zeros((num_channels, target_samples-num_samples)), signal], axis=1)
+            return np.concatenate([np.zeros((num_channels, target_samples - num_samples)), signal], axis=1)

@@ -14,9 +14,10 @@
 
 from datetime import datetime, timedelta
 
-from aer_datasets.datasets import AERTrial
-import scipy.io
 import numpy as np
+import scipy.io
+
+from aer_datasets.datasets import AERTrial
 
 ASCERTAIN_ECG_SAMPLE_RATE = 256
 ASCERTAIN_ECG_N_CHANNELS = 2

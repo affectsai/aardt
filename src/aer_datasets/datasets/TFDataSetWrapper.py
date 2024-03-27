@@ -14,9 +14,9 @@
 
 
 import tensorflow as tf
+from tensorflow.data import AUTOTUNE
 
 from .AERDataset import AERDataset
-from tensorflow.data import AUTOTUNE
 
 
 class TFDataSetWrapper:
