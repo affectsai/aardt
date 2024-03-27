@@ -18,7 +18,7 @@ This library is licensed under the [CC BY-NC-SA 4.0](https://creativecommons.org
 International License. 
 
 __You are free to__:
-* __Share__ — copy and r~~~~edistribute the material in any medium or format 
+* __Share__ — copy and redistribute the material in any medium or format 
 * __Adapt__ — remix, transform, and build upon the material
 
 __Under the followiung terms__:
