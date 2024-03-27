@@ -24,7 +24,7 @@ class DreamerTrial(AERTrial):
         self._dataset = dataset
 
     def load_signal_data(self, signal_type):
-        signal = np.load(self._dataset.get_working_path(self.participant_id-self._dataset.participant_offset, self.movie_id-self._dataset.media_file_offset, signal_type))
+        signal = np.load(self._dataset.get_working_path(self.participant_id, self.movie_id, signal_type))
         time_steps = (np.arange(0, signal.shape[0]) * 1000 / 256).reshape(-1,1)
         result = np.append(time_steps, signal, axis=1)
 

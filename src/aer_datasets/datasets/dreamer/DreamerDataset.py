@@ -73,9 +73,9 @@ class DreamerDataset(AERDataset):
 
         result = self.get_working_dir()
         if participant_id is not None:
-            result /= f'Participant_{participant_id:02d}'
+            result /= f'Participant_{participant_id-self.participant_offset:02d}'
             if media_id is not None:
-                result /= f'Media_{media_id:02d}'
+                result /= f'Media_{media_id-self.media_file_offset:02d}'
                 if signal_type is not None:
                     result /= f'{signal_type}_{"stimuli" if stimuli else "baseline"}.npy'
 
@@ -108,13 +108,15 @@ class DreamerDataset(AERDataset):
     def load_trials(self):
         for p in range(DREAMER_NUM_PARTICIPANTS):
             p += 1
-            self.participant_ids.add(p + self.participant_offset)
+            participant_id = p + self.participant_offset
+            self.participant_ids.add(participant_id)
             for c in range(DREAMER_NUM_MEDIA_FILES):
                 c += 1
+                media_id = c + self.media_file_offset
                 self.media_ids.add(c + self.media_file_offset)
-                trial = DreamerTrial(self, p, c)
+                trial = DreamerTrial(self, participant_id, media_id)
                 trial.signal_preprocessors = self.signal_preprocessors
                 for signal in self.signals:
                     trial.signal_types.add(signal)
-                    trial.signal_data_files[signal] = self.get_working_path(p, c, signal)
+                    trial.signal_data_files[signal] = self.get_working_path(participant_id, media_id, signal)
                 self.all_trails.append(trial)

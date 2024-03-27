@@ -23,10 +23,13 @@ from aer_datasets.datasets.ascertain import AscertainDataset
 from aer_datasets.datasets.ascertain.AscertainDataset import DEFAULT_ASCERTAIN_PATH, ASCERTAIN_NUM_MEDIA_FILES, \
     ASCERTAIN_NUM_PARTICIPANTS, ASCERTAIN_RAW_FOLDER
 
+PARTICIPANT_OFFSET=50
+MEDIAFILE_OFFSET=20
+
 
 class AscertainDatasetTest(unittest.TestCase):
     def setUp(self):
-        self.ecg_dataset = AscertainDataset(DEFAULT_ASCERTAIN_PATH, signals=['ECG'])
+        self.ecg_dataset = AscertainDataset(DEFAULT_ASCERTAIN_PATH, signals=['ECG'], participant_offset=PARTICIPANT_OFFSET, mediafile_offset=MEDIAFILE_OFFSET)
         self.ecg_dataset.preload()
         self.ecg_dataset.load_trials()
         self.dataset_path = (DEFAULT_ASCERTAIN_PATH / ASCERTAIN_RAW_FOLDER).resolve()
@@ -108,3 +111,25 @@ class AscertainDatasetTest(unittest.TestCase):
         """
         trial = self.ecg_dataset.trials[random.randint(0, len(self.ecg_dataset.trials) - 1)]
         self.assertEqual(trial.load_signal_data('ECG').shape[0], 3)
+
+    def test_participant_id_offsets(self):
+        min_id = 9999999
+        max_id = -1
+
+        for participant_id in sorted(self.ecg_dataset.participant_ids):
+            min_id = min(min_id, participant_id)
+            max_id = max(max_id, participant_id)
+
+        self.assertEqual(PARTICIPANT_OFFSET+1, min_id)
+        self.assertEqual(ASCERTAIN_NUM_PARTICIPANTS, max_id-min_id+1)
+
+    def test_media_id_offsets(self):
+        min_id = 9999999
+        max_id = -1
+
+        for media_id in sorted(self.ecg_dataset.media_ids):
+            min_id = min(min_id, media_id)
+            max_id = max(max_id, media_id)
+
+        self.assertEqual(MEDIAFILE_OFFSET+1, min_id)
+        self.assertEqual(ASCERTAIN_NUM_MEDIA_FILES, max_id-min_id+1)
