@@ -19,7 +19,7 @@ from tensorflow.data import AUTOTUNE
 from .AERDataset import AERDataset
 
 
-class TFDataSetWrapper:
+class TFDatasetWrapper:
     def __init__(self, dataset: AERDataset):
         self._aer_dataset = dataset
 

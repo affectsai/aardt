@@ -15,7 +15,7 @@
 import unittest
 import random
 
-from aer_datasets.datasets import TFDataSetWrapper
+from aer_datasets.datasets import TFDatasetWrapper
 from aer_datasets.datasets.ascertain import AscertainDataset
 from aer_datasets.datasets.dreamer import DreamerDataset
 
@@ -46,7 +46,7 @@ class TFDataSetWrapperTest(unittest.TestCase):
         the expected number of times.
         """
         repeat_count = random.randint(1, 10)
-        tfdsw = TFDataSetWrapper(dataset=self.ascertain_dataset)
+        tfdsw = TFDatasetWrapper(dataset=self.ascertain_dataset)
         tfds = tfdsw(batch_size=64, buffer_size=500, repeat=repeat_count)
 
         iteration = 0
@@ -68,7 +68,7 @@ class TFDataSetWrapperTest(unittest.TestCase):
         the expected number of times.
         """
         repeat_count = random.randint(1, 10)
-        tfdsw = TFDataSetWrapper(dataset=self.dreamer_dataset)
+        tfdsw = TFDatasetWrapper(dataset=self.dreamer_dataset)
         tfds = tfdsw(batch_size=64, buffer_size=500, repeat=repeat_count)
 
         iteration = 0
