@@ -4,7 +4,7 @@ from pathlib import Path
 from datasets import AERDataset
 from .AscertainTrial import AscertainTrial
 
-DEFAULT_ASCERTAIN_PATH = '/mnt/affectsai/datasets/ascertain'
+DEFAULT_ASCERTAIN_PATH = Path('/mnt/affectsai/datasets/ascertain')
 ASCERTAIN_RAW_FOLDER = Path('ASCERTAIN_Raw')
 ASCERTAIN_NUM_MEDIA_FILES = 36
 ASCERTAIN_NUM_PARTICIPANTS = 58

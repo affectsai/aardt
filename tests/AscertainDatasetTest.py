@@ -11,52 +11,74 @@ from datasets.ascertain.AscertainDataset import DEFAULT_ASCERTAIN_PATH, ASCERTAI
 
 
 class AscertainDatasetTest(unittest.TestCase):
-    def test_ascertain_path(self):
+    def setUp(self):
+        self.ecg_dataset = AscertainDataset(DEFAULT_ASCERTAIN_PATH, signals=['ECG'])
+        self.ecg_dataset.load_trials()
+        self.dataset_path = (DEFAULT_ASCERTAIN_PATH / ASCERTAIN_RAW_FOLDER).resolve()
+
+    def test_ascertain_paths(self):
+        """
+        Asserts that the expected paths for the ASCERTAIN dataset exist...
+        :return:
+        """
         dataset = AscertainDataset(DEFAULT_ASCERTAIN_PATH)
         dataset.load_trials()
 
-        self.assertTrue(True, 'We made it!')
         for signal in dataset.signals:
-            self.assertTrue(os.path.isdir(os.path.join(DEFAULT_ASCERTAIN_PATH, ASCERTAIN_RAW_FOLDER, f'{signal}Data')))
+            self.assertTrue(os.path.isdir(os.path.join(self.dataset_path, f'{signal}Data')))
 
-        for path in np.array(sorted(os.listdir(os.path.join(DEFAULT_ASCERTAIN_PATH, ASCERTAIN_RAW_FOLDER)))):
+        for path in np.array(sorted(os.listdir(self.dataset_path))):
             if os.path.isdir(os.path.join(DEFAULT_ASCERTAIN_PATH, ASCERTAIN_RAW_FOLDER, path)):
                 if path.endswith('Data'):
                     self.assertIn(path.replace("Data", ""), dataset.signals)
 
-        self.assertEqual(len(dataset.participant_ids), ASCERTAIN_NUM_PARTICIPANTS)
-        self.assertEqual(len(dataset.media_ids), ASCERTAIN_NUM_MEDIA_FILES)
-        self.assertEqual(len(dataset.trials), ASCERTAIN_NUM_MEDIA_FILES * ASCERTAIN_NUM_PARTICIPANTS)
+    def test_ascertain_dataset_load(self):
+        """
+        Asserts that the ASCERTAIN dataset loads the expected number of participants, movie clips, and trials.
+        :return:
+        """
+        self.assertEqual(len(self.ecg_dataset.participant_ids), ASCERTAIN_NUM_PARTICIPANTS)
+        self.assertEqual(len(self.ecg_dataset.media_ids), ASCERTAIN_NUM_MEDIA_FILES)
+        self.assertEqual(len(self.ecg_dataset.trials), ASCERTAIN_NUM_MEDIA_FILES * ASCERTAIN_NUM_PARTICIPANTS)
 
     def test_ascertain_path_limit_signals(self):
-        dataset = AscertainDataset(DEFAULT_ASCERTAIN_PATH, signals=['ECG'])
-        dataset.load_trials()
-
+        """
+        Asserts that the ASCERTAIN data set class works properly on a restricted list of signal types, using the
+        ecg_dataset created in setUp
+        :return:
+        """
         self.assertTrue(True, 'We made it!')
-        for signal in dataset.signals:
+        for signal in self.ecg_dataset.signals:
             self.assertTrue(os.path.isdir(os.path.join(DEFAULT_ASCERTAIN_PATH, ASCERTAIN_RAW_FOLDER, f'{signal}Data')))
 
-        for path in np.array(sorted(os.listdir(os.path.join(DEFAULT_ASCERTAIN_PATH, ASCERTAIN_RAW_FOLDER.name)))):
+        for path in np.array(sorted(os.listdir(self.dataset_path))):
             if os.path.isdir(os.path.join(DEFAULT_ASCERTAIN_PATH, ASCERTAIN_RAW_FOLDER, path)):
                 if path.endswith('Data') and not path.startswith('ECG'):
-                    self.assertNotIn(path.replace("Data", ""), dataset.signals)
+                    self.assertNotIn(path.replace("Data", ""), self.ecg_dataset.signals)
 
-        self.assertEqual(len(dataset.participant_ids), ASCERTAIN_NUM_PARTICIPANTS)
-        self.assertEqual(len(dataset.media_ids), ASCERTAIN_NUM_MEDIA_FILES)
+        self.assertEqual(len(self.ecg_dataset.participant_ids), ASCERTAIN_NUM_PARTICIPANTS)
+        self.assertEqual(len(self.ecg_dataset.media_ids), ASCERTAIN_NUM_MEDIA_FILES)
 
     @staticmethod
     def bad_signal():
         return AscertainDataset(DEFAULT_ASCERTAIN_PATH, signals=['XYZ'])
 
     def test_ascertain_path_invalid_signal(self):
+        """
+        Asserts that a ValueError is thrown if AscertainDataset is constructed with a signal type that does not
+        exist on the filesystem.
+        :return:
+        """
         self.assertRaises(ValueError, AscertainDatasetTest.bad_signal)
 
     def test_signal_datafiles(self):
-        dataset = AscertainDataset(DEFAULT_ASCERTAIN_PATH, signals=['ECG'])
-        dataset.load_trials()
+        """
+        Asserts that the all the datafiles loaded by the AscertainDataset are found.
+        :return:
+        """
         num_trials = 0
         num_data_files = 0
-        for trial in dataset.trials:
+        for trial in self.ecg_dataset.trials:
             num_trials += 1
             for data_file in trial.signal_data_files.values():
                 num_data_files += 1
@@ -64,7 +86,9 @@ class AscertainDatasetTest(unittest.TestCase):
         self.assertEqual(num_trials, ASCERTAIN_NUM_PARTICIPANTS * ASCERTAIN_NUM_MEDIA_FILES)
 
     def test_ecg_signal_load(self):
-        dataset = AscertainDataset(DEFAULT_ASCERTAIN_PATH, signals=['ECG'])
-        dataset.load_trials()
-        trial = dataset.trials[random.randint(0, len(dataset.trials) - 1)]
+        """
+        Asserts that we can properly load an ECG signal from one of the dataset's trials.
+        :return:
+        """
+        trial = self.ecg_dataset.trials[random.randint(0, len(self.ecg_dataset.trials) - 1)]
         self.assertEqual(trial.load_signal_data('ECG').shape[0], 3)

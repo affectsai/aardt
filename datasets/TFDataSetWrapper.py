@@ -1,6 +1,5 @@
 import tensorflow as tf
 
-from . import AERTrial
 from .AERDataset import AERDataset
 from tensorflow.data import AUTOTUNE
 

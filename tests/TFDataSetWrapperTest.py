@@ -1,5 +1,4 @@
 import unittest
-import time
 import random
 
 from datasets import TFDataSetWrapper
@@ -17,6 +16,10 @@ class TFDataSetWrapperTest(unittest.TestCase):
         self.dataset.load_trials()
 
     def test_ascertain_dataset(self):
+        """
+        Tests that the tf.data.dataset provided by the TFDataSetWrapper provides all the samples given in the dataset,
+        the expected number of times.
+        """
         repeat_count = random.randint(1, 10)
         tfdsw = TFDataSetWrapper(dataset=self.dataset)
         tfds = tfdsw(batch_size=64, buffer_size=500, repeat=repeat_count)
@@ -24,14 +27,12 @@ class TFDataSetWrapperTest(unittest.TestCase):
         iteration = 0
         total_elems = 0
 
-        start = time.time()
         # loop over the provided number of steps
         for batch in tfds:
             iteration += 1
             total_elems += len(batch[0])
 
         # stop the timer
-        end = time.time()
         # return the difference between end and start times
         self.assertGreater(iteration, 0)
         self.assertEqual(ASCERTAIN_NUM_PARTICIPANTS * ASCERTAIN_NUM_MEDIA_FILES * repeat_count, total_elems)
