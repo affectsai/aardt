@@ -20,18 +20,23 @@ from .AERDataset import AERDataset
 
 
 class TFDatasetWrapper:
+    """
+    A utility class that wraps an AERDataset in a tf.data.Dataset for use in model training.
+    """
+
     def __init__(self, dataset: AERDataset):
         self._aer_dataset = dataset
 
-    def trial_generator(self):
+    def _trial_generator(self):
         for trial in self._aer_dataset.trials:
             yield (tf.constant(trial.load_preprocessed_signal_data('ECG'), dtype=tf.float32),
                    tf.constant(trial.load_ground_truth(), dtype=tf.int32))
 
     def __call__(self, batch_size=64, buffer_size=1000, repeat=1, *args, **kwargs):
-        dataset = tf.data.Dataset.from_generator(self.trial_generator,
+        dataset = tf.data.Dataset.from_generator(self._trial_generator,
                                                  output_signature=(tf.TensorSpec((3, None), dtype=tf.float32),
                                                                    tf.TensorSpec(shape=(), dtype=tf.int32)))
+
         dataset = dataset.shuffle(buffer_size, reshuffle_each_iteration=True) \
             .cache() \
             .repeat(count=repeat) \
