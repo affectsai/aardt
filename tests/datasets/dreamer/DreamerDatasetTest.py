@@ -16,7 +16,7 @@ import unittest
 import random
 
 from aer_datasets.datasets.dreamer.DreamerDataset import DreamerDataset
-from aer_datasets.datasets.dreamer.DreamerDataset import (DEFAULT_DREAMER_PATH, DEFAULT_DREAMER_FNAME,
+from aer_datasets.datasets.dreamer.DreamerDataset import (DEFAULT_DREAMER_PATH, DEFAULT_DREAMER_FILENAME,
                                                           DREAMER_NUM_MEDIA_FILES, DREAMER_NUM_PARTICIPANTS)
 
 
@@ -25,7 +25,7 @@ class DreamerDatasetTest(unittest.TestCase):
         self.ecg_dataset = DreamerDataset(DEFAULT_DREAMER_PATH, signals=['ECG'])
         self.ecg_dataset.preload()
         self.ecg_dataset.load_trials()
-        self.dataset_path = (DEFAULT_DREAMER_PATH / DEFAULT_DREAMER_FNAME).resolve()
+        self.dataset_path = (DEFAULT_DREAMER_PATH / DEFAULT_DREAMER_FILENAME).resolve()
 
     def test_dataset_load(self):
         """

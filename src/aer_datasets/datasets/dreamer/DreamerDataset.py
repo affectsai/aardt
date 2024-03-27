@@ -21,8 +21,9 @@ from aer_datasets import config
 from aer_datasets.datasets import AERDataset
 from .DreamerTrial import DreamerTrial
 
-DEFAULT_DREAMER_PATH = Path('/mnt/affectsai/datasets/dreamer')
-DEFAULT_DREAMER_FNAME = Path('DREAMER_Data.json')
+CONFIG = config['datasets']['dreamer']
+DEFAULT_DREAMER_PATH = Path(CONFIG['path'])
+DEFAULT_DREAMER_FILENAME = Path(CONFIG['dreamer_data_filename'])
 DREAMER_NUM_MEDIA_FILES = 18
 DREAMER_NUM_PARTICIPANTS = 23
 DREAMER_ALL_SIGNALS = {'ECG', 'EEG'}
@@ -33,7 +34,7 @@ logger.level = logging.DEBUG
 
 class DreamerDataset(AERDataset):
     def __init__(self, dataset_path, signals=None, participant_offset=0, mediafile_offset=0,
-                 dataset_fname=DEFAULT_DREAMER_FNAME):
+                 dataset_fname=DEFAULT_DREAMER_FILENAME):
         """
         Construct a new DreamerDataset object using the given path.
 

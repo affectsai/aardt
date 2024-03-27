@@ -21,7 +21,7 @@ from aer_datasets.datasets.dreamer import DreamerDataset
 
 from aer_datasets.datasets.ascertain.AscertainDataset import DEFAULT_ASCERTAIN_PATH, ASCERTAIN_NUM_MEDIA_FILES, \
     ASCERTAIN_NUM_PARTICIPANTS
-from aer_datasets.datasets.dreamer.DreamerDataset import DEFAULT_DREAMER_PATH, DEFAULT_DREAMER_FNAME, \
+from aer_datasets.datasets.dreamer.DreamerDataset import DEFAULT_DREAMER_PATH, DEFAULT_DREAMER_FILENAME, \
     DREAMER_NUM_PARTICIPANTS, DREAMER_NUM_MEDIA_FILES
 from aer_datasets.preprocessors import FixedDurationPreprocessor
 

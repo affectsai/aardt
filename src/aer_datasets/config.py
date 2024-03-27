@@ -13,5 +13,15 @@
 #  under the License.
 
 config = {
-    'working_dir': '/mnt/affectsai/aerds/'
+    'working_dir': '/mnt/affectsai/aerds/',
+    'datasets': {
+        'ascertain': {
+            'path': '/mnt/affectsai/datasets/ascertain',
+            'raw_data_path': 'ASCERTAIN_Raw'
+        },
+        'dreamer': {
+            'path': '/mnt/affectsai/datasets/dreamer',
+            'dreamer_data_filename': "DREAMER_Data.json"
+        },
+    },
 }

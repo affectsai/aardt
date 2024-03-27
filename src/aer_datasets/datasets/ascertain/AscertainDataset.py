@@ -17,9 +17,11 @@ from pathlib import Path
 
 from aer_datasets.datasets import AERDataset
 from .AscertainTrial import AscertainTrial
+from aer_datasets import config
 
-DEFAULT_ASCERTAIN_PATH = Path('/mnt/affectsai/datasets/ascertain')
-ASCERTAIN_RAW_FOLDER = Path('ASCERTAIN_Raw')
+CONFIG = config['datasets']['ascertain']
+DEFAULT_ASCERTAIN_PATH = Path(CONFIG['path'])
+ASCERTAIN_RAW_FOLDER = Path(CONFIG['raw_data_path'])
 ASCERTAIN_NUM_MEDIA_FILES = 36
 ASCERTAIN_NUM_PARTICIPANTS = 58
 
