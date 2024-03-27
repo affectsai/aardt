@@ -27,6 +27,7 @@ from aer_datasets.datasets.ascertain.AscertainDataset import DEFAULT_ASCERTAIN_P
 class AscertainDatasetTest(unittest.TestCase):
     def setUp(self):
         self.ecg_dataset = AscertainDataset(DEFAULT_ASCERTAIN_PATH, signals=['ECG'])
+        self.ecg_dataset.preload()
         self.ecg_dataset.load_trials()
         self.dataset_path = (DEFAULT_ASCERTAIN_PATH / ASCERTAIN_RAW_FOLDER).resolve()
 
@@ -36,6 +37,7 @@ class AscertainDatasetTest(unittest.TestCase):
         :return:
         """
         dataset = AscertainDataset(DEFAULT_ASCERTAIN_PATH)
+        dataset.preload()
         dataset.load_trials()
 
         for signal in dataset.signals:

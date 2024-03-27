@@ -61,7 +61,7 @@ class AscertainDataset(AERDataset):
                 if p.is_dir():
                     self.signals.append(str(p.name).replace("Data", ""))
 
-    def preload(self):
+    def _preload_dataset(self):
         pass
 
     def load_trials(self):

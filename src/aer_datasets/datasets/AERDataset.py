@@ -14,6 +14,11 @@
 
 
 import abc
+from pathlib import Path
+
+import numpy as np
+
+from aer_datasets import config
 
 
 class AERDataset(metaclass=abc.ABCMeta):
@@ -28,13 +33,31 @@ class AERDataset(metaclass=abc.ABCMeta):
         self._media_ids = set()
         self._all_trials = []
 
-    @abc.abstractmethod
     def preload(self):
+        preload_file = self.get_working_dir() / Path('.preload.npy')
+        if preload_file.exists():
+            preloaded_signals = set(np.load(preload_file))
+
+            # If self.signals is a subset of the signals that have already been preloaded
+            # then we don't have to preload anything.
+            if set(self.signals).issubset(preloaded_signals):
+                return
+
+        self._preload_dataset()
+        np.save(preload_file, self.signals)
+
+    @abc.abstractmethod
+    def _preload_dataset(self):
         pass
 
     @abc.abstractmethod
     def load_trials(self):
         pass
+
+    def get_working_dir(self):
+        path = Path(config['working_dir'])/Path(self.__class__.__name__)
+        path.mkdir(parents=True, exist_ok=True)
+        return path
 
     @property
     def signals(self):

@@ -70,7 +70,7 @@ class DreamerDataset(AERDataset):
         if signal_type is not None and signal_type not in self.signals:
             raise ValueError('Invalid signal type: {}'.format(signal_type))
 
-        result = Path(config['working_dir'] / Path(DreamerDataset.__name__))
+        result = self.get_working_dir()
         if participant_id is not None:
             result /= f'Participant_{participant_id:02d}'
             if media_id is not None:
@@ -80,16 +80,7 @@ class DreamerDataset(AERDataset):
 
         return result
 
-    def preload(self):
-        working_dir = self.get_working_path()
-        working_dir.mkdir(parents=True, exist_ok=True)
-
-        preload_file = working_dir / Path('.preload.npy')
-        if preload_file.exists():
-            preloaded_signals = set(np.load(preload_file))
-            if preloaded_signals == set(self.signals):
-                return
-
+    def _preload_dataset(self):
         participant_id = self.participant_offset
         with open(self._dataset_file, 'rb') as f:
             participant_entries = ijson.items(f, 'item')
@@ -112,8 +103,6 @@ class DreamerDataset(AERDataset):
 
                         np.save(media_path / Path(f'{signal}_stimuli.npy'), stimuli_signal_data[c])
                         np.save(media_path / Path(f'{signal}_baseline.npy'), baseline_signal_data[c])
-
-        np.save(preload_file, self.signals)
 
     def load_trials(self):
         for p in range(DREAMER_NUM_PARTICIPANTS):
