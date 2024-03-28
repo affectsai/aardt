@@ -18,13 +18,17 @@ from .SignalPreprocessor import SignalPreprocessor
 
 
 class FixedDurationPreprocessor(SignalPreprocessor):
-    def __init__(self, signal_duration=45, sample_rate=256, padding_value=0, parent_preprocessor=None):
+    def __init__(self, signal_duration=45, sample_rate=256, padding_value=None, parent_preprocessor=None):
         """
         Preprocesses the signal to a fixed duration. If signal is less than signal_duration, it will be padded on the
         left with the padding_value.
 
         :param signal_duration: target signal length, in seconds
         :param sample_rate: target signal sample rate in Hz
+        :param padding_value: the value to pad incase signal is shorter than the target duration. If None, the mean
+        signal value is used.
+        :param parent_preprocessor: the parent preprocessor instance to invoke prior to this preprocessor, used to build
+        preprocessing chains.
         """
         super().__init__(parent_preprocessor)
         self.signal_duration = signal_duration
@@ -33,10 +37,10 @@ class FixedDurationPreprocessor(SignalPreprocessor):
 
     def process_signal(self, signal):
         """
+        Preprocesses the signal to a fixed duration. If signal is less than signal_duration, it will be padded on the
+        left with the padding_value.
 
         :param signal: The signal to trim, with size NxM where N is the number of channels, and M is the number of samples.
-        :param args:
-        :param kwargs:
         :return:
         """
         num_channels = signal.shape[0]
@@ -46,4 +50,10 @@ class FixedDurationPreprocessor(SignalPreprocessor):
         if num_samples >= target_samples:
             return signal[:, np.arange(num_samples - target_samples, num_samples)]
         else:
-            return np.concatenate([np.zeros((num_channels, target_samples - num_samples)), signal], axis=1)
+            if self.padding_value is None:
+                self.padding_value = np.mean(signal, axis=1)
+            elif np.isscalar(self.padding_value):
+                self.padding_value = np.ones(num_channels) * self.padding_value
+
+            return np.concatenate([np.ones((num_channels, target_samples - num_samples)) *
+                                   self.padding_value.reshape(-1, 1), signal], axis=1)

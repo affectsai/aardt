@@ -35,15 +35,15 @@ class FixedDurationPreprocessorTest(unittest.TestCase):
                                                  padding_value=0)
         processed = preprocessor(signal)
 
-        target_num_samples = SAMPLE_RATE*(LONG_SIGNAL_DURATION-(LONG_SIGNAL_DURATION-SHORT_SIGNAL_DURATION))
-        signal_num_samples = SAMPLE_RATE*LONG_SIGNAL_DURATION
-        trimmed_signal = signal[:, np.arange(signal_num_samples-target_num_samples, signal_num_samples)]
+        target_num_samples = SAMPLE_RATE * (LONG_SIGNAL_DURATION - (LONG_SIGNAL_DURATION - SHORT_SIGNAL_DURATION))
+        signal_num_samples = SAMPLE_RATE * LONG_SIGNAL_DURATION
+        trimmed_signal = signal[:, np.arange(signal_num_samples - target_num_samples, signal_num_samples)]
 
         # Assert that the processed signal has the expected number of samples
         self.assertEqual(SAMPLE_RATE * SHORT_SIGNAL_DURATION, processed.shape[1])
 
         # Assert that expected output minus the processed output is zero for all values
-        self.assertFalse((trimmed_signal-processed).all())
+        self.assertFalse((trimmed_signal - processed).all())
 
     def test_fixed_duration_preprocessor_short_signal(self):
         """
@@ -56,7 +56,7 @@ class FixedDurationPreprocessorTest(unittest.TestCase):
         processed = preprocessor(signal)
 
         # Extract the values we expect to be padding...
-        padded_values = processed[:, np.arange(0, LONG_SIGNAL_DURATION-SHORT_SIGNAL_DURATION)]
+        padded_values = processed[:, np.arange(0, LONG_SIGNAL_DURATION - SHORT_SIGNAL_DURATION)]
 
         # Assert that the processed signal has the expected number of samples
         self.assertEqual(SAMPLE_RATE * LONG_SIGNAL_DURATION, processed.shape[1])
@@ -64,13 +64,24 @@ class FixedDurationPreprocessorTest(unittest.TestCase):
         # Assert that the expected padding values are all zero.
         self.assertFalse(padded_values.all())
 
-    def test_fixed_duration_preprocessor_equal_signal(self):
+    def test_fixed_duration_preprocessor_mean_value_padding(self):
         """
         Tests that when given a signal that is has the target number of samples, that the signal is returned
         unmodified.
         """
-        signal = np.random.random(size=(3, SAMPLE_RATE * LONG_SIGNAL_DURATION))
-        preprocessor = FixedDurationPreprocessor(signal_duration=LONG_SIGNAL_DURATION, sample_rate=SAMPLE_RATE,
-                                                 padding_value=0)
+        signal = np.ones((3, SAMPLE_RATE * SHORT_SIGNAL_DURATION)) * np.array([1, 2, 3]).reshape(-1, 1)
+        preprocessor = FixedDurationPreprocessor(signal_duration=LONG_SIGNAL_DURATION, sample_rate=SAMPLE_RATE)
         processed = preprocessor(signal)
-        self.assertFalse((signal-processed).all())
+
+        # Extract the values we expect to be padding...
+        padded_values_row0 = processed[0, np.arange(0, LONG_SIGNAL_DURATION - SHORT_SIGNAL_DURATION)]
+        padded_values_row1 = processed[1, np.arange(0, LONG_SIGNAL_DURATION - SHORT_SIGNAL_DURATION)]
+        padded_values_row2 = processed[2, np.arange(0, LONG_SIGNAL_DURATION - SHORT_SIGNAL_DURATION)]
+
+        # Assert that the processed signal has the expected number of samples
+        self.assertEqual(SAMPLE_RATE * LONG_SIGNAL_DURATION, processed.shape[1])
+
+        # Assert that the expected padding values are all 1, 2 or 3 the expected mean values per row.
+        self.assertFalse((padded_values_row0 - 1).all())
+        self.assertFalse((padded_values_row1 - 2).all())
+        self.assertFalse((padded_values_row2 - 3).all())
