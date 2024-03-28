@@ -13,9 +13,9 @@
 #  under the License.
 
 import os
+import random
 import unittest
 from pathlib import Path
-import random
 
 import numpy as np
 
@@ -23,13 +23,14 @@ from aardt.datasets.ascertain import AscertainDataset
 from aardt.datasets.ascertain.AscertainDataset import DEFAULT_ASCERTAIN_PATH, ASCERTAIN_NUM_MEDIA_FILES, \
     ASCERTAIN_NUM_PARTICIPANTS, ASCERTAIN_RAW_FOLDER
 
-PARTICIPANT_OFFSET=50
-MEDIAFILE_OFFSET=20
+PARTICIPANT_OFFSET = 50
+MEDIAFILE_OFFSET = 20
 
 
 class AscertainDatasetTest(unittest.TestCase):
     def setUp(self):
-        self.ecg_dataset = AscertainDataset(DEFAULT_ASCERTAIN_PATH, signals=['ECG'], participant_offset=PARTICIPANT_OFFSET, mediafile_offset=MEDIAFILE_OFFSET)
+        self.ecg_dataset = AscertainDataset(DEFAULT_ASCERTAIN_PATH, signals=['ECG'],
+                                            participant_offset=PARTICIPANT_OFFSET, mediafile_offset=MEDIAFILE_OFFSET)
         self.ecg_dataset.preload()
         self.ecg_dataset.load_trials()
         self.dataset_path = (DEFAULT_ASCERTAIN_PATH / ASCERTAIN_RAW_FOLDER).resolve()
@@ -120,8 +121,8 @@ class AscertainDatasetTest(unittest.TestCase):
             min_id = min(min_id, participant_id)
             max_id = max(max_id, participant_id)
 
-        self.assertEqual(PARTICIPANT_OFFSET+1, min_id)
-        self.assertEqual(ASCERTAIN_NUM_PARTICIPANTS, max_id-min_id+1)
+        self.assertEqual(PARTICIPANT_OFFSET + 1, min_id)
+        self.assertEqual(ASCERTAIN_NUM_PARTICIPANTS, max_id - min_id + 1)
 
     def test_media_id_offsets(self):
         min_id = 9999999
@@ -131,8 +132,8 @@ class AscertainDatasetTest(unittest.TestCase):
             min_id = min(min_id, media_id)
             max_id = max(max_id, media_id)
 
-        self.assertEqual(MEDIAFILE_OFFSET+1, min_id)
-        self.assertEqual(ASCERTAIN_NUM_MEDIA_FILES, max_id-min_id+1)
+        self.assertEqual(MEDIAFILE_OFFSET + 1, min_id)
+        self.assertEqual(ASCERTAIN_NUM_MEDIA_FILES, max_id - min_id + 1)
 
     def test_splits(self):
         trial_splits = self.ecg_dataset.get_trial_splits([.7, .3])
@@ -150,7 +151,8 @@ class AscertainDatasetTest(unittest.TestCase):
         split_3_participants = set([x.participant_id for x in trial_splits[2]])
 
         self.assertEqual(len(trial_splits), 3)
-        self.assertEqual(len(trial_splits[0])+len(trial_splits[1])+len(trial_splits[2]), len(self.ecg_dataset.trials))
+        self.assertEqual(len(trial_splits[0]) + len(trial_splits[1]) + len(trial_splits[2]),
+                         len(self.ecg_dataset.trials))
         self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))
         self.assertEqual(0, len(split_1_participants.intersection(split_3_participants)))
         self.assertEqual(0, len(split_2_participants.intersection(split_3_participants)))

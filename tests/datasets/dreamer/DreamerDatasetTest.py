@@ -12,12 +12,12 @@
 #  express or implied. See the License for the specific language governing permissions and limitations
 #  under the License.
 
-import unittest
 import random
+import unittest
 
-from aardt.datasets.dreamer.DreamerDataset import DreamerDataset
 from aardt.datasets.dreamer.DreamerDataset import (DEFAULT_DREAMER_PATH, DEFAULT_DREAMER_FILENAME,
                                                    DREAMER_NUM_MEDIA_FILES, DREAMER_NUM_PARTICIPANTS)
+from aardt.datasets.dreamer.DreamerDataset import DreamerDataset
 
 PARTICIPANT_OFFSET = 50
 MEDIAFILE_OFFSET = 20
@@ -25,7 +25,8 @@ MEDIAFILE_OFFSET = 20
 
 class DreamerDatasetTest(unittest.TestCase):
     def setUp(self):
-        self.ecg_dataset = DreamerDataset(DEFAULT_DREAMER_PATH, signals=['ECG'], participant_offset=PARTICIPANT_OFFSET, mediafile_offset=MEDIAFILE_OFFSET)
+        self.ecg_dataset = DreamerDataset(DEFAULT_DREAMER_PATH, signals=['ECG'], participant_offset=PARTICIPANT_OFFSET,
+                                          mediafile_offset=MEDIAFILE_OFFSET)
         self.ecg_dataset.preload()
         self.ecg_dataset.load_trials()
         self.dataset_path = (DEFAULT_DREAMER_PATH / DEFAULT_DREAMER_FILENAME).resolve()
@@ -47,8 +48,8 @@ class DreamerDatasetTest(unittest.TestCase):
             min_id = min(min_id, participant_id)
             max_id = max(max_id, participant_id)
 
-        self.assertEqual(PARTICIPANT_OFFSET+1, min_id)
-        self.assertEqual(DREAMER_NUM_PARTICIPANTS, max_id-min_id+1)
+        self.assertEqual(PARTICIPANT_OFFSET + 1, min_id)
+        self.assertEqual(DREAMER_NUM_PARTICIPANTS, max_id - min_id + 1)
 
     def test_media_id_offsets(self):
         min_id = 9999999
@@ -58,13 +59,14 @@ class DreamerDatasetTest(unittest.TestCase):
             min_id = min(min_id, media_id)
             max_id = max(max_id, media_id)
 
-        self.assertEqual(MEDIAFILE_OFFSET+1, min_id)
-        self.assertEqual(DREAMER_NUM_MEDIA_FILES, max_id-min_id+1)
+        self.assertEqual(MEDIAFILE_OFFSET + 1, min_id)
+        self.assertEqual(DREAMER_NUM_MEDIA_FILES, max_id - min_id + 1)
 
     def test_dataset_preload_files_exist(self):
         for trial in self.ecg_dataset.trials:
             for signal_type in trial.signal_types:
-                self.assertTrue(trial.signal_data_files[signal_type].exists(), f'Signal data file {trial.signal_data_files[signal_type]} does not exist')
+                self.assertTrue(trial.signal_data_files[signal_type].exists(),
+                                f'Signal data file {trial.signal_data_files[signal_type]} does not exist')
 
     @staticmethod
     def bad_signal():
@@ -110,7 +112,8 @@ class DreamerDatasetTest(unittest.TestCase):
         self.assertEqual(len(trial_splits), 3)
 
         # Assert that the length of the splits sums to the total number of trials in the dataset.
-        self.assertEqual(len(trial_splits[0])+len(trial_splits[1])+len(trial_splits[2]), len(self.ecg_dataset.trials))
+        self.assertEqual(len(trial_splits[0]) + len(trial_splits[1]) + len(trial_splits[2]),
+                         len(self.ecg_dataset.trials))
 
         # Assert that no participant in the first split appears in the second split
         self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))

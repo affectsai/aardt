@@ -11,8 +11,9 @@
 #  is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
 #  express or implied. See the License for the specific language governing permissions and limitations
 #  under the License.
-from aardt.datasets import AERTrial
 import numpy as np
+
+from aardt.datasets import AERTrial
 
 DREAMER_ECG_SAMPLE_RATE = 256
 DREAMER_ECG_N_CHANNELS = 2
@@ -25,7 +26,7 @@ class DreamerTrial(AERTrial):
 
     def load_signal_data(self, signal_type):
         signal = np.load(self._dataset.get_working_path(self.participant_id, self.movie_id, signal_type))
-        time_steps = (np.arange(0, signal.shape[0]) * 1000 / 256).reshape(-1,1)
+        time_steps = (np.arange(0, signal.shape[0]) * 1000 / 256).reshape(-1, 1)
         result = np.append(time_steps, signal, axis=1)
 
         return result.transpose()
@@ -35,4 +36,3 @@ class DreamerTrial(AERTrial):
 
     def get_signal_metadata(self, signal_type):
         pass
-

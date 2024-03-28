@@ -16,7 +16,6 @@ import unittest
 
 import numpy as np
 
-from aardt.preprocessors import FixedDurationPreprocessor
 from aardt.preprocessors.ChannelSelector import ChannelSelector
 
 # Test parameters
@@ -39,7 +38,7 @@ class ChannelSelectorTest(unittest.TestCase):
 
         # Assert that the data at row N+1 of the signal is the same as the data in row N of the processed output.
         for row in range(processed.shape[0]):
-            self.assertFalse((signal[row+1, :] - processed[row, :]).all())
+            self.assertFalse((signal[row + 1, :] - processed[row, :]).all())
 
 
 if __name__ == '__main__':

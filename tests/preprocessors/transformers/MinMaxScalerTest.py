@@ -15,7 +15,6 @@
 import unittest
 
 import numpy as np
-import random
 
 from aardt.preprocessors.transformers.MinMaxScaler import MinMaxScaler
 
@@ -30,6 +29,7 @@ class MinMaxScalarTest(unittest.TestCase):
 
                 self.assertLessEqual(np.max(processed) - 1e-8, max_val)
                 self.assertGreaterEqual(np.min(processed) + 1e-8, min_val)
+
 
 if __name__ == '__main__':
     unittest.main()

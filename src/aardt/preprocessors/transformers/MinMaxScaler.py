@@ -33,7 +33,7 @@ class MinMaxScaler(SignalPreprocessor):
     Applies a sklearn.preprocessing.MinMaxScaler to the signal data.
     """
 
-    def __init__(self, feature_range=(0,1), parent_preprocessor=None, child_preprocessor=None):
+    def __init__(self, feature_range=(0, 1), parent_preprocessor=None, child_preprocessor=None):
         """
 
         :param feature_range: the desired feature range for the sklearn.preprocessing.MinMaxScaler

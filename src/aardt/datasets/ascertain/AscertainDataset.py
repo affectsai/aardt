@@ -15,9 +15,9 @@
 import logging
 from pathlib import Path
 
+from aardt import config
 from aardt.datasets import AERDataset
 from .AscertainTrial import AscertainTrial
-from aardt import config
 
 CONFIG = config['datasets']['ascertain']
 DEFAULT_ASCERTAIN_PATH = Path(CONFIG['path'])

@@ -40,6 +40,7 @@ class TFDatasetWrapper:
         :param n_split: if splits were given, this specifies the index of the split to use.
         :return:
         """
+
         def _trial_generator():
             for trial in self._trial_splits[n_split]:
                 yield (tf.constant(trial.load_preprocessed_signal_data(signal_type), dtype=tf.float32),

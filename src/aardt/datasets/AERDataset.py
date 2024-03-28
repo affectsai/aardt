@@ -55,7 +55,7 @@ class AERDataset(metaclass=abc.ABCMeta):
         pass
 
     def get_working_dir(self):
-        path = Path(config['working_dir'])/Path(self.__class__.__name__)
+        path = Path(config['working_dir']) / Path(self.__class__.__name__)
         path.mkdir(parents=True, exist_ok=True)
         return path
 
@@ -85,7 +85,7 @@ class AERDataset(metaclass=abc.ABCMeta):
         if splits is None:
             splits = [1]
 
-        if abs(1.0-np.sum(splits)) > 1e-4:
+        if abs(1.0 - np.sum(splits)) > 1e-4:
             raise ValueError("Splits must sum to be 1.0")
 
         # If we only have 1 split then just return the list of all_trials, not a list of lists.
@@ -95,7 +95,7 @@ class AERDataset(metaclass=abc.ABCMeta):
         # Convert the percentages into participant counts
         splits = (np.array(splits) * len(self.participant_ids)).astype(dtype=np.int32)
         if sum(splits) != len(self.participant_ids):
-            splits[0] += len(self.participant_ids)-sum(splits)
+            splits[0] += len(self.participant_ids) - sum(splits)
 
         # Split the participant ids randomly into len(splits) groups
         all_ids = set(self.participant_ids)

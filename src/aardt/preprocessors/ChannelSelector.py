@@ -12,7 +12,6 @@
 #  express or implied. See the License for the specific language governing permissions and limitations
 #  under the License.
 import numpy as np
-from sklearn import preprocessing as p
 
 from aardt.preprocessors import SignalPreprocessor
 

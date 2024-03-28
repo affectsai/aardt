@@ -12,17 +12,16 @@
 #  express or implied. See the License for the specific language governing permissions and limitations
 #  under the License.
 
-import unittest
 import random
+import unittest
 
 from aardt.datasets import TFDatasetWrapper
 from aardt.datasets.ascertain import AscertainDataset
-from aardt.datasets.dreamer import DreamerDataset
-
 from aardt.datasets.ascertain.AscertainDataset import DEFAULT_ASCERTAIN_PATH, ASCERTAIN_NUM_MEDIA_FILES, \
     ASCERTAIN_NUM_PARTICIPANTS
-from aardt.datasets.dreamer.DreamerDataset import DEFAULT_DREAMER_PATH, DEFAULT_DREAMER_FILENAME, \
-    DREAMER_NUM_PARTICIPANTS, DREAMER_NUM_MEDIA_FILES
+from aardt.datasets.dreamer import DreamerDataset
+from aardt.datasets.dreamer.DreamerDataset import DEFAULT_DREAMER_PATH, DREAMER_NUM_PARTICIPANTS, \
+    DREAMER_NUM_MEDIA_FILES
 from aardt.preprocessors import FixedDurationPreprocessor
 
 

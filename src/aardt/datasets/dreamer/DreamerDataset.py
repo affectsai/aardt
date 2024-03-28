@@ -13,11 +13,12 @@
 #  under the License.
 
 import logging
+from pathlib import Path
+
 import ijson
 import numpy as np
-from pathlib import Path
-from aardt import config
 
+from aardt import config
 from aardt.datasets import AERDataset
 from .DreamerTrial import DreamerTrial
 
@@ -73,9 +74,9 @@ class DreamerDataset(AERDataset):
 
         result = self.get_working_dir()
         if participant_id is not None:
-            result /= f'Participant_{participant_id-self.participant_offset:02d}'
+            result /= f'Participant_{participant_id - self.participant_offset:02d}'
             if media_id is not None:
-                result /= f'Media_{media_id-self.media_file_offset:02d}'
+                result /= f'Media_{media_id - self.media_file_offset:02d}'
                 if signal_type is not None:
                     result /= f'{signal_type}_{"stimuli" if stimuli else "baseline"}.npy'
 
