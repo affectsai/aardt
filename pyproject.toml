@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "aer_datasets"
+name = "aardt"
 version = "0.0.1"
 authors = [
   { name="Timothy C. Sweeney-Fanelli", email="tim@affects.ai" },
@@ -20,5 +20,5 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/affectsai/aer-datasets"
-Issues = "https://github.com/affectsai/aer-datasets/issues"
+Homepage = "https://github.com/affectsai/aardt"
+Issues = "https://github.com/affectsai/aardt/issues"

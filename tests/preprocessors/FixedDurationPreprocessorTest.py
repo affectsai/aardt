@@ -16,7 +16,7 @@ import unittest
 
 import numpy as np
 
-from aer_datasets.preprocessors import FixedDurationPreprocessor
+from aardt.preprocessors import FixedDurationPreprocessor
 
 # Test parameters
 LONG_SIGNAL_DURATION = 10

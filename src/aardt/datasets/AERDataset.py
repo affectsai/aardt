@@ -18,7 +18,7 @@ from pathlib import Path
 
 import numpy as np
 
-from aer_datasets import config
+from aardt import config
 
 
 class AERDataset(metaclass=abc.ABCMeta):

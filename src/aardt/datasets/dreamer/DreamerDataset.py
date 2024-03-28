@@ -16,9 +16,9 @@ import logging
 import ijson
 import numpy as np
 from pathlib import Path
-from aer_datasets import config
+from aardt import config
 
-from aer_datasets.datasets import AERDataset
+from aardt.datasets import AERDataset
 from .DreamerTrial import DreamerTrial
 
 CONFIG = config['datasets']['dreamer']

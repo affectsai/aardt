@@ -19,8 +19,8 @@ import random
 
 import numpy as np
 
-from aer_datasets.datasets.ascertain import AscertainDataset
-from aer_datasets.datasets.ascertain.AscertainDataset import DEFAULT_ASCERTAIN_PATH, ASCERTAIN_NUM_MEDIA_FILES, \
+from aardt.datasets.ascertain import AscertainDataset
+from aardt.datasets.ascertain.AscertainDataset import DEFAULT_ASCERTAIN_PATH, ASCERTAIN_NUM_MEDIA_FILES, \
     ASCERTAIN_NUM_PARTICIPANTS, ASCERTAIN_RAW_FOLDER
 
 PARTICIPANT_OFFSET=50

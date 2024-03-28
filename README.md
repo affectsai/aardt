@@ -1,4 +1,4 @@
-# AER Datasets
+# Affects AI Research Dataset Toolkit (AARDT)
 This is a utility library for working with AER Datasets available to the academic community for research in 
 automated emotion recognition. While it may likely be applied to datasets in other research areas, the author(s)' 
 are primarily focused on AER. 
