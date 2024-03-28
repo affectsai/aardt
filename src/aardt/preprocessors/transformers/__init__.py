@@ -11,25 +11,14 @@
 #  is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
 #  express or implied. See the License for the specific language governing permissions and limitations
 #  under the License.
-from sklearn import preprocessing as p
 
-from aardt.preprocessors import SignalPreprocessor
+"""
+This package contains preprocessors that perform normalization or regularization on the signal data...
 
+The AERTrial's load_signal_data method return an array of (N+1)xM where N is the number of signal channels, and M is
+the length of the signal. The 0th row is timestep data, not signal data, and should be removed using a ChannelSelector
+preprocessor prior to applying these filters.
 
-class MinMaxScaler(SignalPreprocessor):
-    """
-    Applies a sklearn.preprocessing.MinMaxScaler to the signal data.
-    """
-
-    def __init__(self, feature_range=(0,1), parent_preprocessor=None):
-        """
-
-        :param feature_range: the desired feature range for the sklearn.preprocessing.MinMaxScaler
-        :param parent_preprocessor:
-        """
-        super().__init__(parent_preprocessor)
-        self._feature_range = feature_range
-
-    def process_signal(self, signal):
-        min_max_scaler = p.MinMaxScaler(feature_range=self._feature_range)
-        return min_max_scaler.fit_transform(signal)
+Note - if you really don't care about the timestep data, leaving it inplace won't hurt anything, but there's no sense in
+filtering it either.
+"""

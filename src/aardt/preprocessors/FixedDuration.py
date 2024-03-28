@@ -18,7 +18,8 @@ from .SignalPreprocessor import SignalPreprocessor
 
 
 class FixedDurationPreprocessor(SignalPreprocessor):
-    def __init__(self, signal_duration=45, sample_rate=256, padding_value=None, parent_preprocessor=None):
+    def __init__(self, signal_duration=45, sample_rate=256, padding_value=None,
+                 parent_preprocessor=None, child_preprocessor=None):
         """
         Preprocesses the signal to a fixed duration. If signal is less than signal_duration, it will be padded on the
         left with the padding_value.
@@ -30,7 +31,7 @@ class FixedDurationPreprocessor(SignalPreprocessor):
         :param parent_preprocessor: the parent preprocessor instance to invoke prior to this preprocessor, used to build
         preprocessing chains.
         """
-        super().__init__(parent_preprocessor)
+        super().__init__(parent_preprocessor, child_preprocessor)
         self.signal_duration = signal_duration
         self.sample_rate = sample_rate
         self.padding_value = padding_value

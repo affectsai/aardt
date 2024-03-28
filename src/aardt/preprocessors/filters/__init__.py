@@ -11,3 +11,14 @@
 #  is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
 #  express or implied. See the License for the specific language governing permissions and limitations
 #  under the License.
+
+"""
+This package contains preprocessors that perform signal filtering.
+
+The AERTrial's load_signal_data method return an array of (N+1)xM where N is the number of signal channels, and M is
+the length of the signal. The 0th row is timestep data, not signal data, and should be removed using a ChannelSelector
+preprocessor prior to applying these filters.
+
+Note - if you really don't care about the timestep data, leaving it inplace won't hurt anything, but there's no sense in
+filtering it either.
+"""

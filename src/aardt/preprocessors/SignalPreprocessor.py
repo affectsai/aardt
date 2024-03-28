@@ -16,14 +16,17 @@ from abc import ABCMeta, abstractmethod
 
 
 class SignalPreprocessor(metaclass=ABCMeta):
-    def __init__(self, parent_preprocessor=None):
+    def __init__(self, parent_preprocessor=None, child_preprocessor=None):
         """
-        Constructs a signal preprocessor with an optional parent. If parent_preprocessor is given, then it will
-        be called before this one, allowing for a preprocessor chain to be constructed
+        Constructs a signal preprocessor with an optional parent and child preprocessor chain.
+        If parent_preprocessor is given, then it will be called before this preprocessor is applied. If
+        child_preprocessor is given, then it will be called after this preprocessor is applied. This allows for
+        building complex preprocessor chains to be applied to the data.
 
         :param parent_preprocessor:
         """
-        self.parent_preprocessor = parent_preprocessor
+        self._parent_preprocessor = parent_preprocessor
+        self._child_preprocessor = child_preprocessor
 
     @abstractmethod
     def process_signal(self, signal):
@@ -38,5 +41,7 @@ class SignalPreprocessor(metaclass=ABCMeta):
 
     def __call__(self, signal, *args, **kwargs):
         result = signal
-        result = self.parent_preprocessor(result) if self.parent_preprocessor is not None else result
-        return self.process_signal(result)
+        result = self._parent_preprocessor(result) if self._parent_preprocessor is not None else result
+        result = self.process_signal(result)
+        result = self._child_preprocessor(result) if self._child_preprocessor is not None else result
+        return result

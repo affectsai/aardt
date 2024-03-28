@@ -23,13 +23,13 @@ class ChannelSelector(SignalPreprocessor):
     channels in use for high-channel data.
     """
 
-    def __init__(self, retain_channels=None, parent_preprocessor=None):
+    def __init__(self, retain_channels=None, parent_preprocessor=None, child_preprocessor=None):
         """
 
         :param retain_channels: an iterable containing the channels to retain in the signal. If None, all channels except 0 are retained, removing timeseries data from the trial
         :param parent_preprocessor
         """
-        super().__init__(parent_preprocessor)
+        super().__init__(parent_preprocessor, child_preprocessor)
         self._retain_channels = retain_channels
 
     def process_signal(self, signal):

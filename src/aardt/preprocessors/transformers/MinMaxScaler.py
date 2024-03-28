@@ -23,27 +23,25 @@
 #  is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
 #  express or implied. See the License for the specific language governing permissions and limitations
 #  under the License.
-import numpy as np
-from neurokit2 import signal as nk2signal
+from sklearn import preprocessing as p
 
-from aardt.preprocessors.SignalPreprocessor import SignalPreprocessor
+from aardt.preprocessors import SignalPreprocessor
 
 
-class PowerlineFilter(SignalPreprocessor):
+class MinMaxScaler(SignalPreprocessor):
     """
-    Filters out powerline noise by smoothing the signal with a moving average kernel the width of one period at the
-    powerline frequency. Uses NeuroKit2 signal filtering.
+    Applies a sklearn.preprocessing.MinMaxScaler to the signal data.
     """
 
-    def __init__(self, Fs, powerline=60, parent_preprocessor=None, child_preprocessor=None):
+    def __init__(self, feature_range=(0,1), parent_preprocessor=None, child_preprocessor=None):
         """
-        :param Fs: The sampling frequency
-        :param powerline: the powerline frequency, defaults to 60Hz, typically either 50 or 60
+
+        :param feature_range: the desired feature range for the sklearn.preprocessing.MinMaxScaler
         :param parent_preprocessor:
         """
         super().__init__(parent_preprocessor, child_preprocessor)
-        self._sampling_frequency = Fs
-        self._powerline = powerline
+        self._feature_range = feature_range
 
     def process_signal(self, signal):
-        return nk2signal.signal_filter(signal, self._sampling_frequency, method='powerline', powerline=self._powerline)
+        min_max_scaler = p.MinMaxScaler(feature_range=self._feature_range)
+        return min_max_scaler.fit_transform(signal)
