@@ -134,6 +134,27 @@ class AscertainDatasetTest(unittest.TestCase):
         self.assertEqual(MEDIAFILE_OFFSET+1, min_id)
         self.assertEqual(ASCERTAIN_NUM_MEDIA_FILES, max_id-min_id+1)
 
+    def test_splits(self):
+        trial_splits = self.ecg_dataset.get_trial_splits([.7, .3])
+        split_1_participants = set([x.participant_id for x in trial_splits[0]])
+        split_2_participants = set([x.participant_id for x in trial_splits[1]])
+        
+        self.assertEqual(len(trial_splits), 2)
+        self.assertEqual(len(trial_splits[0]) + len(trial_splits[1]), len(self.ecg_dataset.trials))
+        self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))
+
+    def test_three_splits(self):
+        trial_splits = self.ecg_dataset.get_trial_splits([.7, .15, .15])
+        split_1_participants = set([x.participant_id for x in trial_splits[0]])
+        split_2_participants = set([x.participant_id for x in trial_splits[1]])
+        split_3_participants = set([x.participant_id for x in trial_splits[2]])
+
+        self.assertEqual(len(trial_splits), 3)
+        self.assertEqual(len(trial_splits[0])+len(trial_splits[1])+len(trial_splits[2]), len(self.ecg_dataset.trials))
+        self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))
+        self.assertEqual(0, len(split_1_participants.intersection(split_3_participants)))
+        self.assertEqual(0, len(split_2_participants.intersection(split_3_participants)))
+
 
 if __name__ == '__main__':
     unittest.main()
