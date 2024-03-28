@@ -187,6 +187,16 @@ pipeline = FixedDurationPreprocessor(
 )
 ```
 
+Alternatively you can use the `child_preprocessor` to chain the other way:
+```python
+pipeline = MyNormalizer(
+    child_preprocessor=FixedDurationPreprocessor(signal_duration=30, sample_rate=256, padding_value=0)
+)
+```
+
+A `child_preprocessor` will be invoked _after_ the preprocessor completes, so this achieves the same effect of 
+normalizing the signal first, then truncating or padding it to 30 seconds.
+
 ### Using with TensorFlow
 To facilitate use with TensorFlow, use the `TFDatasetWrapper` to decorate your `AERDataset` as a `tf.data.Dataset` suitable 
 for use with `tf.model.fit()`
