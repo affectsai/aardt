@@ -47,7 +47,7 @@ class TFDataSetWrapperTest(unittest.TestCase):
         """
         repeat_count = random.randint(1, 10)
         tfdsw = TFDatasetWrapper(dataset=self.ascertain_dataset)
-        tfds = tfdsw(batch_size=64, buffer_size=500, repeat=repeat_count)
+        tfds = tfdsw(signal_type='ECG', batch_size=64, buffer_size=500, repeat=repeat_count)
 
         iteration = 0
         total_elems = 0
@@ -69,7 +69,7 @@ class TFDataSetWrapperTest(unittest.TestCase):
         """
         repeat_count = random.randint(1, 10)
         tfdsw = TFDatasetWrapper(dataset=self.dreamer_dataset)
-        tfds = tfdsw(batch_size=64, buffer_size=500, repeat=repeat_count)
+        tfds = tfdsw(signal_type='ECG', batch_size=64, buffer_size=500, repeat=repeat_count)
 
         iteration = 0
         total_elems = 0

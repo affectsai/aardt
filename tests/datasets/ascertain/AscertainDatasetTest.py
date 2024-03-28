@@ -138,7 +138,7 @@ class AscertainDatasetTest(unittest.TestCase):
         trial_splits = self.ecg_dataset.get_trial_splits([.7, .3])
         split_1_participants = set([x.participant_id for x in trial_splits[0]])
         split_2_participants = set([x.participant_id for x in trial_splits[1]])
-        
+
         self.assertEqual(len(trial_splits), 2)
         self.assertEqual(len(trial_splits[0]) + len(trial_splits[1]), len(self.ecg_dataset.trials))
         self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))

@@ -209,7 +209,7 @@ import aardt.datasets
 tfdsw = aardt.datasets.TFDatasetWrapper(ecg_dataset)
 
 # Create the tf.data.Dataset 
-tfdataset = tfdsw(batch_size=64, buffer_size=500, repeat=1)
+tfdataset = tfdsw('ECG', batch_size=64, buffer_size=500, repeat=1)
 
 # Setup your tensorflow model, then use the tfdataset:
 myModel = get_tensorflow_model()
@@ -218,7 +218,27 @@ myModel = get_tensorflow_model()
 myModel.fit(tfdataset)
 ```
 
-___todo:__ need to implement method for train/test splits_
+To separate training, validation and test splits, you can specify the splits to the `TFDatasetWrapper` and then indicate
+which split you intend when you call it.
+```python
+import aardt.datasets
+
+# Don't forget to setup your preprocessor pipelines, then preload and 
+# load the dataset first!
+
+# Specify 60% of participants for the training split, 30% for validation and 10% for testing.
+tfdsw = aardt.datasets.TFDatasetWrapper(ecg_dataset, splits=[.6, .3, .1])
+
+# Setup your tensorflow model, then use the tfdataset:
+myModel = get_tensorflow_model()
+
+# Train your model using preprocessed signals from the AERDataset, using trials from the split at index 0 (60%)
+myModel.fit(
+    x=tfdsw('ECG', n_split=0),
+    validation_data =tfdsw('ECG', n_split=1)
+    ...
+)
+```
 
 TFDatasetWrapper provides a `tf.data.dataset` which will prefetch up to `buffer_size` trials at random, creating batches of 
 size `batch_size`, and will iterate the dataset `repeat` times. The prefetch queue uses `tf.data.AUTOTUNE` to self-optimize.
