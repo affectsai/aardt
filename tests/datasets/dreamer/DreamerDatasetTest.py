@@ -11,7 +11,7 @@
 #  is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
 #  express or implied. See the License for the specific language governing permissions and limitations
 #  under the License.
-import math
+
 import unittest
 import random
 
@@ -85,6 +85,41 @@ class DreamerDatasetTest(unittest.TestCase):
         """
         trial = self.ecg_dataset.trials[random.randint(0, len(self.ecg_dataset.trials) - 1)]
         self.assertEqual(trial.load_signal_data('ECG').shape[0], 3)
+
+    def test_splits(self):
+        trial_splits = self.ecg_dataset.get_trial_splits([.7, .3])
+        split_1_participants = set([trial.participant_id for trial in trial_splits[0]])
+        split_2_participants = set([trial.participant_id for trial in trial_splits[1]])
+
+        # Assert that we got two splits...
+        self.assertEqual(len(trial_splits), 2)
+
+        # Assert that the length of the splits sums to the total number of trials in the dataset.
+        self.assertEqual(len(self.ecg_dataset.trials), len(trial_splits[0]) + len(trial_splits[1]))
+
+        # Assert that no participant in the first split appears in the second split
+        self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))
+
+    def test_three_splits(self):
+        trial_splits = self.ecg_dataset.get_trial_splits([.7, .15, .15])
+        split_1_participants = set([trial.participant_id for trial in trial_splits[0]])
+        split_2_participants = set([trial.participant_id for trial in trial_splits[1]])
+        split_3_participants = set([trial.participant_id for trial in trial_splits[2]])
+
+        # Assert that we got three splits...
+        self.assertEqual(len(trial_splits), 3)
+
+        # Assert that the length of the splits sums to the total number of trials in the dataset.
+        self.assertEqual(len(trial_splits[0])+len(trial_splits[1])+len(trial_splits[2]), len(self.ecg_dataset.trials))
+
+        # Assert that no participant in the first split appears in the second split
+        self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))
+
+        # Assert that no participant in the first split appears in the third split
+        self.assertEqual(0, len(split_1_participants.intersection(split_3_participants)))
+
+        # Assert that no participant in the second split appears in the third split
+        self.assertEqual(0, len(split_2_participants.intersection(split_3_participants)))
 
 
 if __name__ == '__main__':

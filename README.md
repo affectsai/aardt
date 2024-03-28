@@ -235,8 +235,13 @@ myModel = get_tensorflow_model()
 # Train your model using preprocessed signals from the AERDataset, using trials from the split at index 0 (60%)
 myModel.fit(
     x=tfdsw('ECG', n_split=0),
-    validation_data =tfdsw('ECG', n_split=1)
+    validation_data=tfdsw('ECG', n_split=1)
     ...
+)
+
+# Later, evaluate against the test set
+reults = myModel.evaluate(
+    x=tfdsw('ECG', n_split=2)
 )
 ```
 
