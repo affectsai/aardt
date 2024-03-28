@@ -85,3 +85,7 @@ class DreamerDatasetTest(unittest.TestCase):
         """
         trial = self.ecg_dataset.trials[random.randint(0, len(self.ecg_dataset.trials) - 1)]
         self.assertEqual(trial.load_signal_data('ECG').shape[0], 3)
+
+
+if __name__ == '__main__':
+    unittest.main()

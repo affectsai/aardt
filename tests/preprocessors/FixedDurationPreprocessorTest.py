@@ -85,3 +85,7 @@ class FixedDurationPreprocessorTest(unittest.TestCase):
         self.assertFalse((padded_values_row0 - 1).all())
         self.assertFalse((padded_values_row1 - 2).all())
         self.assertFalse((padded_values_row2 - 3).all())
+
+
+if __name__ == '__main__':
+    unittest.main()

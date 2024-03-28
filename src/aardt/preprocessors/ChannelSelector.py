@@ -36,4 +36,4 @@ class ChannelSelector(SignalPreprocessor):
         channels_to_keep = self._retain_channels
         if channels_to_keep is None:
             channels_to_keep = np.arange(1, signal.shape[0])
-        return signal[self._retain_channels, :]
+        return signal[channels_to_keep, :]

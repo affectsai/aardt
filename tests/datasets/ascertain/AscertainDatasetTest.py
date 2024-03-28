@@ -133,3 +133,7 @@ class AscertainDatasetTest(unittest.TestCase):
 
         self.assertEqual(MEDIAFILE_OFFSET+1, min_id)
         self.assertEqual(ASCERTAIN_NUM_MEDIA_FILES, max_id-min_id+1)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -83,3 +83,7 @@ class TFDataSetWrapperTest(unittest.TestCase):
         # return the difference between end and start times
         self.assertGreater(iteration, 0)
         self.assertEqual(DREAMER_NUM_PARTICIPANTS * DREAMER_NUM_MEDIA_FILES * repeat_count, total_elems)
+
+
+if __name__ == '__main__':
+    unittest.main()

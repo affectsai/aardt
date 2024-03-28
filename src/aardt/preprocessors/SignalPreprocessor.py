@@ -27,21 +27,57 @@ class SignalPreprocessor(metaclass=ABCMeta):
         """
         self._parent_preprocessor = parent_preprocessor
         self._child_preprocessor = child_preprocessor
+        self._context = {}
 
     @abstractmethod
     def process_signal(self, signal):
         """
-
         :param signal: The signal to trim, with size NxM where N is the number of channels, and M is the number of samples.
+        :param context: the context dictionary for this chain
         :param args:
         :param kwargs:
         :return:
         """
         pass
 
-    def __call__(self, signal, *args, **kwargs):
+    @property
+    def context(self):
+        """
+        Gets this preprocessor's context dict.
+
+        :return:
+        """
+        return self._context
+
+    def resolve(self, chain=None):
+        """
+        Resolves the preprocessor chain.
+
+        :param chain: a list of preprocessor type names that will already be called prior to this preprocessor, or None.
+        :return: a list of preprocessor type names, in the order in which they will be executed when this
+        preprocessor is called.
+        """
+        if chain is None:
+            chain = []
+
+        chain = chain if self._parent_preprocessor is None else self._parent_preprocessor.resolve(chain)
+        chain.append(self.__class__.__name__)
+
+        if self._child_preprocessor is not None:
+            self._child_preprocessor.resolve(chain)
+
+        return chain
+
+    def __call__(self, signal, context=None, *args, **kwargs):
+        if context is None:
+            context = {}
+
+        self.context.update(context)
+
         result = signal
-        result = self._parent_preprocessor(result) if self._parent_preprocessor is not None else result
+        result = self._parent_preprocessor(result, self.context) if self._parent_preprocessor is not None else result
         result = self.process_signal(result)
-        result = self._child_preprocessor(result) if self._child_preprocessor is not None else result
+        result = self._child_preprocessor(result, self.context) if self._child_preprocessor is not None else result
+
+        context.update(self.context)
         return result
