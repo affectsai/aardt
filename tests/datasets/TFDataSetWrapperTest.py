@@ -28,7 +28,7 @@ from aardt.preprocessors import FixedDurationPreprocessor
 
 class TFDataSetWrapperTest(unittest.TestCase):
     def setUp(self):
-        self.preprocess_pipeline = FixedDurationPreprocessor(45, 56, 0)
+        self.preprocess_pipeline = FixedDurationPreprocessor(45, 256, 0)
 
         self.ascertain_dataset = AscertainDataset(DEFAULT_ASCERTAIN_PATH, signals=['ECG'])
         self.ascertain_dataset.signal_preprocessors['ECG'] = self.preprocess_pipeline
