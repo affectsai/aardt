@@ -44,6 +44,20 @@ class AERDataset(metaclass=abc.ABCMeta):
      a previous invocation. If a preload is necessary, then the subclass' _preload_dataset method will be called,
      otherwise no action is taken.
     - get_trial_splits: used to generate training, validation and test splits based on participant identifiers.
+
+    The general usage pattern looks something like this:
+    >>> from aardt.datasets.ascertain import AscertainDataset
+    >>> my_dataset = AscertainDataset(signals=['ECG'])
+    >>> my_dataset.signal_preprocessors['ECG'] = aardt.preprocessors.NK2ECGPreprocessor()
+    >>> my_dataset.preload()
+    >>> my_dataset.load_trials()
+    >>>
+    >>> training_trials, validation_trials, test_trials =
+    >>>   my_dataset.get_trial_splits([.5, .3, .2])
+    >>>
+    >>> for training_trial in training_trials:
+    >>>     preprocessed_ecg = training_trial.load_signal_data('ECG')
+    >>>     # do something with the preprocessed ecg signal.
     """
     def __init__(self, signals=None, participant_offset=0, mediafile_offset=0):
         if signals is None:
@@ -253,4 +267,13 @@ class AERDataset(metaclass=abc.ABCMeta):
 
     @property
     def signal_preprocessors(self):
+        """
+        A map of signal_type to SignalPreprocessor instance, e.g.:
+            'ECG' -> aardt.preprocessors.NK2ECGPreprocess
+
+        These are available to all AERTrial instances loaded under this dataset, and are used to process the signals
+        as they are loaded from each AERTrial.
+
+        :return:
+        """
         return self._signal_preprocessors
