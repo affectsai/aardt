@@ -120,4 +120,4 @@ class DreamerDataset(AERDataset):
                 for signal in self.signals:
                     trial.signal_types.add(signal)
                     trial.signal_data_files[signal] = self.get_working_path(participant_id, media_id, signal)
-                self.all_trails.append(trial)
+                self.trials.append(trial)

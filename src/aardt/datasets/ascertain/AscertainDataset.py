@@ -96,4 +96,4 @@ class AscertainDataset(AERDataset):
                 trial = AscertainTrial(participant_id, movie_id)
                 trial.signal_data_files = all_trials[participant_id][movie_id]
                 trial.signal_preprocessors = self.signal_preprocessors
-                self.all_trails.append(trial)
+                self.trials.append(trial)
