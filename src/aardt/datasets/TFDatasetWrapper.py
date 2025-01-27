@@ -33,7 +33,6 @@ class TFDatasetWrapper:
 
     def __call__(self, signal_type, batch_size=64, buffer_size=1000, repeat=1, n_split=0):
         """
-
         :param batch_size: the size of the batch to generate
         :param buffer_size: the number of trials to prefetch into memory
         :param repeat: the number of times this dataset should repeat over itself
@@ -46,8 +45,9 @@ class TFDatasetWrapper:
                 yield (tf.constant(trial.load_preprocessed_signal_data(signal_type), dtype=tf.float32),
                        tf.constant(trial.load_ground_truth(), dtype=tf.int32))
 
+        num_channels = self._aer_dataset.get_signal_metadata(signal_type)['n_channels']
         dataset = tf.data.Dataset.from_generator(_trial_generator,
-                                                 output_signature=(tf.TensorSpec((3, None), dtype=tf.float32),
+                                                 output_signature=(tf.TensorSpec((num_channels, None), dtype=tf.float32),
                                                                    tf.TensorSpec(shape=(), dtype=tf.int32)))
 
         dataset = dataset.shuffle(buffer_size, reshuffle_each_iteration=True) \

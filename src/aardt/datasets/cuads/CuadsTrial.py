@@ -22,6 +22,8 @@ from aardt.datasets import AERTrial
 SAMPLE_RATE = 256
 
 CUADS_COLUMN_MAP = {
+    "SEGMENT_ECG_TIMESTAMP": 0,
+    "SEGMENT_GSR_TIMESTAMP": 1,
     "SEGMENT_ECG_LARA":     15,
     "SEGMENT_ECG_LLLA":     16,
     "SEGMENT_ECG_LLRA":     17,
@@ -56,16 +58,19 @@ class CuadsTrial(AERTrial):
         self._trial_duration = segment_data.shape[1] / SAMPLE_RATE
 
         if signal_type == 'ECG':
-            data = np.array( segment_data[:, [CUADS_COLUMN_MAP["SEGMENT_ECG_LARA"],
-                                              CUADS_COLUMN_MAP["SEGMENT_ECG_LLLA"],
-                                              CUADS_COLUMN_MAP["SEGMENT_ECG_LLRA"]]], dtype=float)
+            data = np.array( segment_data[:, [ CUADS_COLUMN_MAP["SEGMENT_ECG_TIMESTAMP"],
+                                               CUADS_COLUMN_MAP["SEGMENT_ECG_LARA"],
+                                               CUADS_COLUMN_MAP["SEGMENT_ECG_LLLA"],
+                                               CUADS_COLUMN_MAP["SEGMENT_ECG_LLRA"]] ], dtype=float)
             return data.transpose()
         elif signal_type == 'GSR':
-            data = np.array( segment_data[:, [CUADS_COLUMN_MAP["SEGMENT_GSR_SC"],
+            data = np.array( segment_data[:, [CUADS_COLUMN_MAP["SEGMENT_GSR_TIMESTAMP"],
+                                              CUADS_COLUMN_MAP["SEGMENT_GSR_SC"],
                                               CUADS_COLUMN_MAP["SEGMENT_GSR_SR"]]], dtype=float)
             return data.transpose()
         elif signal_type == 'PPG':
-            data = np.array(segment_data[:, [CUADS_COLUMN_MAP["SEGMENT_PPG"]]], dtype=float)
+            data = np.array(segment_data[:, [CUADS_COLUMN_MAP["SEGMENT_GSR_TIMESTAMP"],
+                                             CUADS_COLUMN_MAP["SEGMENT_PPG"]]], dtype=float)
             return data.transpose()
         else:
             raise ValueError('load_signal_data not implemented for signal type {}'.format(signal_type))
