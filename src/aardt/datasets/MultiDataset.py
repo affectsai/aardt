@@ -25,7 +25,7 @@
 #  under the License.
 
 from aardt import config
-from aardt.datasets import AERDataset
+from .AERDataset import AERDataset
 
 class MultiDataset(AERDataset):
     def __init__(self, datasets, signals=None):
@@ -49,3 +49,17 @@ class MultiDataset(AERDataset):
 
     def get_signal_metadata(self, signal_type):
         return self._signal_metadata[signal_type]
+
+    @property
+    def media_names_by_movie_id(self):
+        map = {}
+        for dataset in self._datasets:
+            map.update(dataset.media_names_by_movie_id)
+        return map
+
+    @property
+    def expected_media_responses(self):
+        map = {}
+        for dataset in self._datasets:
+            map.update(dataset.expected_media_responses)
+        return map

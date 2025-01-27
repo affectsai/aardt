@@ -61,6 +61,7 @@ class AscertainDataset(AERDataset):
         self.ascertain_path = Path(ascertain_path)
         self.ascertain_raw_path = self.ascertain_path / ASCERTAIN_RAW_FOLDER
         self.ascertain_features_path = self.ascertain_path / ASCERTAIN_FEATURES_FOLDER
+        self.media_index_to_name = {}           # Maps media index back to name
 
         if not self.ascertain_path.exists():
             raise ValueError('Path to ASCERTAIN does not exist: {}'.format(ascertain_path))
@@ -75,6 +76,63 @@ class AscertainDataset(AERDataset):
             for p in sorted(self.ascertain_raw_path.rglob("*Data")):
                 if p.is_dir():
                     self.signals.append(str(p.name).replace("Data", ""))
+
+        self._expected_results = {
+            # Taken from DECAF+ mediafile_offset: MEG-BASED MULTIMODAL DATABASE FOR DECODING AFFECTIVE PHYSIOLOGICAL RESPONSES
+            # Amusing
+            1+ mediafile_offset: 1,   # Ace Ventura+ mediafile_offset: Pet Detective
+            2+ mediafile_offset: 1,   # The Gods Must Be Crazy II
+            4+ mediafile_offset: 1,   # Airplane
+            5+ mediafile_offset: 1,   # When Harry Met Sally
+
+            # Funny:
+            3+ mediafile_offset: 1,   # Liar Liar
+            6+ mediafile_offset: 1,   # The Gods Must Be Crazy
+            7+ mediafile_offset: 1,   # The Hangover
+            9+ mediafile_offset: 1,   # Hot Shots
+
+            # Happy:
+            8+ mediafile_offset: 4,   # Up
+            10+ mediafile_offset: 4,  # August Rush
+            11+ mediafile_offset: 4,  # Truman Show
+            12+ mediafile_offset: 4,  # Wall-E
+            13+ mediafile_offset: 4,  # Love Actually
+            14+ mediafile_offset: 4,  # Remember the Titans
+            16+ mediafile_offset: 4,  # Life is Beautiful
+            17+ mediafile_offset: 4,  # Slumdog Millionaire
+            18+ mediafile_offset: 4,  # House of Flying Daggers
+
+            # Exciting
+            15+ mediafile_offset: 1,  # Legally Blonde
+            33+ mediafile_offset: 1,  # The Untouchables
+
+            # Angry
+            19+ mediafile_offset: 3,  # Ghandi
+            21+ mediafile_offset: 3,  # Lagaan
+            23+ mediafile_offset: 3,  # My Bodyguard
+            35+ mediafile_offset: 3,  # Crash
+
+            # Disgusting
+            28+ mediafile_offset: 2,  # The Exorcist
+            34+ mediafile_offset: 2,  # Pink Flamingos
+
+            # Fear:
+            30+ mediafile_offset: 2,  # The Shining
+            36+ mediafile_offset: 2,  # Black Swan
+
+            # Sad
+            20+ mediafile_offset: 3,  # My Girl
+            22+ mediafile_offset: 3,  # Bambi
+            24+ mediafile_offset: 3,  # Up
+            25+ mediafile_offset: 3,  # Life is Beautiful
+            26+ mediafile_offset: 3,  # Remember the Titans
+            27+ mediafile_offset: 3,  # Titanic
+            31+ mediafile_offset: 3,  # Prestige
+
+            # Shock
+            29+ mediafile_offset: 2,  # Mulholland Drive
+            32+ mediafile_offset: 2,  # Alien
+        }
 
     def _preload_dataset(self):
         pass
@@ -97,6 +155,7 @@ class AscertainDataset(AERDataset):
             movie_id = int(matlab_file.name.upper().replace(f'{signal_type}_CLIP', '').replace('.MAT', ''))
             movie_id += self.media_file_offset
 
+            self.media_index_to_name[movie_id] = movie_id   # no names, just ids... 1:1 map
             if participant_id not in all_trials.keys():
                 all_trials[participant_id] = {}
 
@@ -123,8 +182,8 @@ class AscertainDataset(AERDataset):
             self.participant_ids.add(participant_id)
             for movie_id in all_trials[participant_id]:
                 self.media_ids.add(movie_id)
-                arousal = dt_selfreports['Ratings'][0][participant_id - 1][movie_id - 1]
-                valence = dt_selfreports['Ratings'][1][participant_id - 1][movie_id - 1]
+                arousal = dt_selfreports['Ratings'][0][participant_id - 1 - self.participant_offset][movie_id - 1 - self.media_file_offset]
+                valence = dt_selfreports['Ratings'][1][participant_id - 1 - self.participant_offset][movie_id - 1 - self.media_file_offset]
 
                 trial = AscertainTrial(self, participant_id, movie_id, _to_quadrant(arousal, valence))
                 trial.signal_data_files = all_trials[participant_id][movie_id]
@@ -138,3 +197,11 @@ class AscertainDataset(AERDataset):
                 'sample_rate': 256,
                 'n_channels': 2,
             }
+
+    @property
+    def media_names_by_movie_id(self):
+        return self.media_index_to_name
+
+    @property
+    def expected_media_responses(self):
+        return self._expected_results

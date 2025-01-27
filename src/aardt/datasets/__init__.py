@@ -16,3 +16,4 @@
 from .AERDataset import AERDataset
 from .AERTrial import AERTrial
 from .TFDatasetWrapper import TFDatasetWrapper
+from .MultiDataset import MultiDataset

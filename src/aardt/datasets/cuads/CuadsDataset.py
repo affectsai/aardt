@@ -66,6 +66,29 @@ class CuadsDataset(AERDataset):
         self.dataset_path = Path(dataset_path)
         self._trial_cache = LRUCache(10)
 
+        self._expected_results = expected_label_map = {
+            'video_55': 2,
+            'video_79': 1,
+            'video_111': 3,
+            'video_73': 2,
+            'video_52': 4,
+            'video_146': 3,
+            'video_funny_f': 1,
+            'video_80': 1,
+            'video_cats_f': 1,
+            'video_138': 3,
+            'video_69': 2,
+            'video_dallas_f': 0,
+            'video_detroit_f': 0,
+            'video_53': 4,
+            'video_58': 4,
+            'video_30': 2,
+            'video_earworm_f': 2,
+            'video_newyork_f': 0,
+            'video_90': 1,
+            'video_107': 2
+        }
+
 
     def _preload_dataset(self):
         pass
@@ -119,10 +142,10 @@ class CuadsDataset(AERDataset):
 
                 if movie_name not in self.media_index_map:
                     self.media_index_map[movie_name] = len(self.media_index_map) + 1
-                    self.media_index_to_name[self.media_index_map[movie_name]] = movie_name
 
                 movie_id = self.media_index_map[movie_name] + self.media_file_offset
                 self.media_ids.add(movie_id)
+                self.media_index_to_name[movie_id] = movie_name
 
                 trial = CuadsTrial(self, segmented_data_filepath,
                                dataset_participant_number,
@@ -157,3 +180,7 @@ class CuadsDataset(AERDataset):
     @property
     def media_names_by_movie_id(self):
         return self.media_index_to_name
+
+    @property
+    def expected_media_responses(self):
+        return self._expected_results
