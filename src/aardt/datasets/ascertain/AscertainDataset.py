@@ -16,6 +16,8 @@ import os
 import logging
 from pathlib import Path
 
+import scipy
+
 from aardt import config
 from aardt.datasets import AERDataset
 from .AscertainTrial import AscertainTrial
@@ -23,6 +25,7 @@ from .AscertainTrial import AscertainTrial
 CONFIG = config['datasets']['ascertain']
 DEFAULT_ASCERTAIN_PATH = Path(CONFIG['path'])
 ASCERTAIN_RAW_FOLDER = Path(CONFIG['raw_data_path'])
+ASCERTAIN_FEATURES_FOLDER = Path(CONFIG['features_data_path'])
 ASCERTAIN_NUM_MEDIA_FILES = 36
 ASCERTAIN_NUM_PARTICIPANTS = 58
 
@@ -47,7 +50,7 @@ class AscertainDataset(AERDataset):
         super().__init__(signals, participant_offset, mediafile_offset)
 
         if ascertain_path is None:
-            dataset_path = CONFIG.get('path')
+            ascertain_path = CONFIG.get('path')
 
         if ascertain_path is None or not os.path.exists(ascertain_path):
             raise ValueError(
@@ -57,6 +60,7 @@ class AscertainDataset(AERDataset):
 
         self.ascertain_path = Path(ascertain_path)
         self.ascertain_raw_path = self.ascertain_path / ASCERTAIN_RAW_FOLDER
+        self.ascertain_features_path = self.ascertain_path / ASCERTAIN_FEATURES_FOLDER
 
         if not self.ascertain_path.exists():
             raise ValueError('Path to ASCERTAIN does not exist: {}'.format(ascertain_path))
@@ -78,6 +82,9 @@ class AscertainDataset(AERDataset):
     def load_trials(self):
         # Load trial data...
         all_trials = {}
+        dt_selfreports_path = os.path.join(self.ascertain_features_path, "Dt_SelfReports.mat")
+        dt_selfreports = scipy.io.loadmat(dt_selfreports_path)
+
         for matlab_file in self.ascertain_raw_path.rglob("*Clip*.mat"):
             movie_folder = matlab_file.parents[0].name
             signal_folder = matlab_file.parents[1].name
@@ -98,11 +105,28 @@ class AscertainDataset(AERDataset):
 
             all_trials[participant_id][movie_id][signal_type] = matlab_file.resolve()
 
+        def _to_quadrant(a,v):
+            q=-1
+            if a >= 3:  # A is high
+                if v >= 0:  # A is High, V is Neg = Quad 0
+                    q = 1
+                else:
+                    q = 2
+            else:
+                if v < 0:
+                    q = 3
+                else:
+                    q = 4
+            return q
+
         for participant_id in all_trials:
             self.participant_ids.add(participant_id)
             for movie_id in all_trials[participant_id]:
                 self.media_ids.add(movie_id)
-                trial = AscertainTrial(self, participant_id, movie_id)
+                arousal = dt_selfreports['Ratings'][0][participant_id - 1][movie_id - 1]
+                valence = dt_selfreports['Ratings'][1][participant_id - 1][movie_id - 1]
+
+                trial = AscertainTrial(self, participant_id, movie_id, _to_quadrant(arousal, valence))
                 trial.signal_data_files = all_trials[participant_id][movie_id]
                 trial.signal_preprocessors = self.signal_preprocessors
                 self.trials.append(trial)
