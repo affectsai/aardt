@@ -248,6 +248,37 @@ reults = myModel.evaluate(
 TFDatasetWrapper provides a `tf.data.dataset` which will prefetch up to `buffer_size` trials at random, creating batches of 
 size `batch_size`, and will iterate the dataset `repeat` times. The prefetch queue uses `tf.data.AUTOTUNE` to self-optimize.
 
+## Adding New Datasets
+Whether you are creating your own dataset, or just want to use one that isn't already included, AARDT is designed to be 
+extensible allowing you to integrate additional datasets as needed. This section serves as a guide to help you do this. 
+
+### Step 1: Dataset Paths
+Dataset paths are configured in the `config.yml` file. Each dataset has its own section, and you can add new ones as needed. For example, to add the CUADS dataset, we did this:
+```config.yml
+config = {
+    'working_dir': '/mnt/affectsai/aerds/',
+    'datasets': {
+        ...,
+        'cuads': {
+            'path': '/mnt/affectsai/datasets/cuads',
+        }
+    },
+}
+```
+
+Any additional properties you need can be added under the `cuads` element. 
+
+### Step 2: Implement AERDataset
+The `AERDataset` is the base class for all dataset implementations in AARDT. All the implementation details, including
+dataset layout and access details, are encapsulated in your implementation of this base class. See any of the existing 
+implementations for examples. We provide implementations for ASCERTAIN, CUADS, and DREAMER each of which is thoroughly 
+commented. See `src/aardt/datasets/ascertain/Ascertaindataset.py`, `src/aardt/datasets/dreamer/DreamerDataset.py`, 
+AND `src/aardt/datasets/cuads/CuadsDataset.py`.
+
+Important notes for your implementation:
+* Your dataset must extend `AERDataset`
+* You are responsible for populating self.media_ids and self.participant_ids in the AERDataset super class. These mut be sets of integers. If your dataset does not use integer IDs for participants and media files, you can index them when you load your data. CUADS, for example, uses "CUADS_XXX" for participant IDs, where XXX is the participant number; and a non-numeric string for the media ID. Both of these are handled in the `load_trials()` method. 
+* You are responsible for adding the AERDataset's participant offset and media offset to each of your IDs when you populate `self.media_ids` and `self.participant_ids`. If you are only working with your own data, this is not very important, but it is necessary to combine multiple datasets together.
 
 ## Contributing <a name="contributing"></a>
 We are happy to support you by accepting pull requests that make this library more broadly applicable, or by accepting

@@ -30,7 +30,7 @@ logger.level = logging.DEBUG
 
 
 class AscertainDataset(AERDataset):
-    def __init__(self, ascertain_path, signals=None, participant_offset=0, mediafile_offset=0):
+    def __init__(self, ascertain_path=None, signals=None, participant_offset=0, mediafile_offset=0):
         """
         Construct a new AscertainDataset object for a given ascertainPath.
 
@@ -44,6 +44,14 @@ class AscertainDataset(AERDataset):
         mediafile_offset is 12, then Movie 1 from this dataset's raw data will be reported as Media ID 13.
         """
         super().__init__(signals, participant_offset, mediafile_offset)
+
+        if ascertain_path is None:
+            dataset_path = CONFIG.get('path')
+
+        if ascertain_path is None or not os.path.exists(ascertain_path):
+            raise ValueError(
+                f'Invalid path to ASCERTAIN dataset: {ascertain_path}. Please correct and try again.')
+
         logger.debug(f'Loading ASCERTAIN from {ascertain_path} with signals {signals}.')
 
         self.ascertain_path = Path(ascertain_path)

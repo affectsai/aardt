@@ -13,6 +13,7 @@
 #  under the License.
 
 import logging
+import os.path
 from pathlib import Path
 
 import ijson
@@ -34,7 +35,7 @@ logger.level = logging.DEBUG
 
 
 class DreamerDataset(AERDataset):
-    def __init__(self, dataset_path, signals=None, participant_offset=0, mediafile_offset=0,
+    def __init__(self, dataset_path=None, signals=None, participant_offset=0, mediafile_offset=0,
                  dataset_fname=DEFAULT_DREAMER_FILENAME):
         """
         Construct a new DreamerDataset object using the given path.
@@ -56,6 +57,14 @@ class DreamerDataset(AERDataset):
                         f'{signal} signal does not exist in DREAMER. Please correct and try again.')
 
         super().__init__(signals, participant_offset, mediafile_offset)
+
+        if dataset_path is None:
+            dataset_path = CONFIG.get('path')
+
+        if dataset_path is None or not os.path.exists(dataset_path):
+            raise ValueError(
+                f'Invalid path to DREAMER dataset: {dataset_path}. Please correct and try again.')
+
         logger.debug(f'Loading DREAMER from {dataset_path}/{dataset_fname} with signals {signals}.')
         self._dataset_file = Path(dataset_path) / Path(dataset_fname)
 

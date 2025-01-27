@@ -23,5 +23,8 @@ config = {
             'path': '/mnt/affectsai/datasets/dreamer',
             'dreamer_data_filename': "DREAMER_Data.json"
         },
+        'cuads': {
+            'path': '/mnt/affectsai/datasets/cuads',
+        }
     },
 }
