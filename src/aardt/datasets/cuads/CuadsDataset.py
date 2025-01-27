@@ -26,6 +26,8 @@ CONFIG = config['datasets']['cuads']
 DEFAULT_DATASET_PATH = Path(CONFIG['path'])
 CUADS_NUM_MEDIA_FILES   = 20
 CUADS_NUM_PARTICIPANTS  = 44     # There are only 38, but they're still numbered 1 to 44.
+CUADS_NUM_TRIALS        = 714    # The real number of trials in the CUADS Data Set
+CUADS_SAMPLE_RATE       = 256
 
 logger = logging.getLogger('CuadsDataset')
 logger.level = logging.DEBUG
@@ -113,11 +115,32 @@ class CuadsDataset(AERDataset):
 
                 movie_id = self.media_index_map[movie_name] + self.media_file_offset
                 self.media_ids.add(movie_id)
-                self.trials.append(
-                    CuadsTrial(segmented_data_filepath,
+
+                trial = CuadsTrial(self, segmented_data_filepath,
                                dataset_participant_number,
                                movie_id,
                                _to_quadrant(float(response[response_arousal]), float(response[response_valence])))
-                    )
+                trial.signal_preprocessors = self.signal_preprocessors
+                self.trials.append(trial)
 
-
+    def get_signal_metadata(self, signal_type):
+        if signal_type == 'ECG':
+            return {
+                'signal_type': signal_type,
+                'sample_rate': CUADS_SAMPLE_RATE,
+                'n_channels': 3,
+            }
+        elif signal_type == 'GSR':
+            return {
+                'signal_type': signal_type,
+                'sample_rate': CUADS_SAMPLE_RATE,
+                'n_channels': 2,
+            }
+        elif signal_type == 'PPG':
+            return {
+                'signal_type': signal_type,
+                'sample_rate': CUADS_SAMPLE_RATE,
+                'n_channels': 1,
+            }
+        else:
+            raise ValueError('get_signal_metadata not implemented for signal type {}'.format(signal_type))

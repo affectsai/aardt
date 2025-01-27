@@ -22,6 +22,9 @@ from aardt.datasets.ascertain.AscertainDataset import DEFAULT_ASCERTAIN_PATH, AS
 from aardt.datasets.dreamer import DreamerDataset
 from aardt.datasets.dreamer.DreamerDataset import DEFAULT_DREAMER_PATH, DREAMER_NUM_PARTICIPANTS, \
     DREAMER_NUM_MEDIA_FILES
+from aardt.datasets.cuads import CuadsDataset
+from aardt.datasets.cuads.CuadsDataset import CUADS_NUM_TRIALS
+
 from aardt.preprocessors import FixedDurationPreprocessor
 
 
@@ -38,6 +41,11 @@ class TFDataSetWrapperTest(unittest.TestCase):
         self.dreamer_dataset.signal_preprocessors['ECG'] = self.preprocess_pipeline
         self.dreamer_dataset.preload()
         self.dreamer_dataset.load_trials()
+
+        self.cuads_dataset = CuadsDataset()
+        self.cuads_dataset.signal_preprocessors['ECG'] = self.preprocess_pipeline
+        self.cuads_dataset.preload()
+        self.cuads_dataset.load_trials()
 
     def test_ascertain_dataset(self):
         """
@@ -82,6 +90,29 @@ class TFDataSetWrapperTest(unittest.TestCase):
         # return the difference between end and start times
         self.assertGreater(iteration, 0)
         self.assertEqual(DREAMER_NUM_PARTICIPANTS * DREAMER_NUM_MEDIA_FILES * repeat_count, total_elems)
+
+    def test_cuads_dataset(self):
+        """
+        Tests that the tf.data.dataset provided by the TFDataSetWrapper provides all the samples given in the dataset,
+        the expected number of times.
+        """
+        repeat_count = random.randint(2, 5)
+        tfdsw = TFDatasetWrapper(dataset=self.cuads_dataset)
+        tfds = tfdsw(signal_type='ECG', batch_size=64, buffer_size=100, repeat=repeat_count)
+
+        iteration = 0
+        total_elems = 0
+
+        # loop over the provided number of steps
+        for batch in tfds:
+            iteration += 1
+            total_elems += len(batch[0])
+
+        # stop the timer
+        # return the difference between end and start times
+        self.assertGreater(iteration, 0)
+        self.assertEqual(CUADS_NUM_TRIALS * repeat_count, total_elems)
+
 
 
 if __name__ == '__main__':

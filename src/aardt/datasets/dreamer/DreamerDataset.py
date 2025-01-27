@@ -91,6 +91,9 @@ class DreamerDataset(AERDataset):
 
         return result
 
+    def get_signal_metadata(self, signal_type):
+        return {}
+
     def _preload_dataset(self):
         participant_id = self.participant_offset
         with open(self._dataset_file, 'rb') as f:

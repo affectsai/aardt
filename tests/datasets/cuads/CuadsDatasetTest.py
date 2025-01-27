@@ -19,7 +19,7 @@ from pathlib import Path
 
 import numpy as np
 
-from aardt.datasets.cuads.CuadsDataset import CuadsDataset
+from aardt.datasets.cuads import CuadsDataset
 from aardt.datasets.cuads.CuadsDataset import DEFAULT_DATASET_PATH, CUADS_NUM_MEDIA_FILES, \
     CUADS_NUM_PARTICIPANTS
 
@@ -30,7 +30,7 @@ CUADS_NUM_PARTICIPANTS = 38
 CUADS_NUM_MEDIA_FILES = 20
 CUADS_NUM_TRIALS = 714
 
-class AscertainDatasetTest(unittest.TestCase):
+class CuadsDatasetTest(unittest.TestCase):
     def setUp(self):
         self.dataset = CuadsDataset(None, PARTICIPANT_OFFSET, MEDIAFILE_OFFSET)
         self.dataset.preload()

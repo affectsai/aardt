@@ -36,8 +36,8 @@ CUADS_COLUMN_MAP = {
 }
 
 class CuadsTrial(AERTrial):
-    def __init__(self, segment_file, participant_id, movie_id, truth):
-        super().__init__(participant_id, movie_id)
+    def __init__(self, dataset, segment_file, participant_id, movie_id, truth):
+        super().__init__(dataset, participant_id, movie_id)
         self._truth = truth
         self._segmented_file = segment_file
         self._trial_duration = 0
@@ -46,29 +46,10 @@ class CuadsTrial(AERTrial):
         return self._truth
 
     def get_signal_metadata(self, signal_type):
-        if signal_type == 'ECG':
-            return {
-                'signal_type': signal_type,
-                'sample_rate': SAMPLE_RATE,
-                'n_channels': 3,
-                'duration': self._ecg_signal_duration,
-            }
-        elif signal_type == 'GSR':
-            return {
-                'signal_type': signal_type,
-                'sample_rate': SAMPLE_RATE,
-                'n_channels': 2,
-                'duration': self._ecg_signal_duration,
-            }
-        elif signal_type == 'PPG':
-            return {
-                'signal_type': signal_type,
-                'sample_rate': SAMPLE_RATE,
-                'n_channels': 1,
-                'duration': self._ecg_signal_duration,
-            }
-        else:
-            raise ValueError('get_signal_metadata not implemented for signal type {}'.format(signal_type))
+        dataset_meta = self.dataset.get_signal_metadata(signal_type)
+        dataset_meta['duration'] = self._trial_duration
+        return dataset_meta
+
 
     def load_signal_data(self, signal_type):
         segment_data = np.loadtxt(self._segmented_file, delimiter=',', dtype=str, skiprows=1)

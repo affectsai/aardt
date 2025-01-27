@@ -21,11 +21,10 @@ DREAMER_ECG_N_CHANNELS = 2
 
 class DreamerTrial(AERTrial):
     def __init__(self, dataset, participant_id, movie_id):
-        super().__init__(participant_id, movie_id)
-        self._dataset = dataset
+        super().__init__(dataset, participant_id, movie_id)
 
     def load_signal_data(self, signal_type):
-        signal = np.load(self._dataset.get_working_path(self.participant_id, self.movie_id, signal_type))
+        signal = np.load(self.dataset.get_working_path(self.participant_id, self.movie_id, signal_type))
         time_steps = (np.arange(0, signal.shape[0]) * 1000 / 256).reshape(-1, 1)
         result = np.append(time_steps, signal, axis=1)
 
@@ -35,4 +34,5 @@ class DreamerTrial(AERTrial):
         return 0
 
     def get_signal_metadata(self, signal_type):
-        pass
+        dataset_meta = self.dataset.get_signal_metadata(signal_type)
+        return dataset_meta

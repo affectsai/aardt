@@ -19,7 +19,8 @@ import numpy as np
 
 
 class AERTrial(abc.ABC):
-    def __init__(self, participant_id, movie_id):
+    def __init__(self, dataset, participant_id, movie_id):
+        self._dataset = dataset
         self._participant_id = participant_id
         self._signal_types = set()
         self._signal_preprocessors = {}
@@ -79,6 +80,10 @@ class AERTrial(abc.ABC):
             raise ValueError('Signal type {} is not known in this AERTrial'.format(signal_type))
 
         return {}
+
+    @property
+    def dataset(self):
+        return self._dataset
 
     @property
     def signal_data_files(self):

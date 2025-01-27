@@ -24,21 +24,18 @@ ASCERTAIN_ECG_N_CHANNELS = 2
 
 
 class AscertainTrial(AERTrial):
-    def __init__(self, participant_id, movie_id):
-        super().__init__(participant_id, movie_id)
+    def __init__(self, dataset, participant_id, movie_id):
+        super().__init__(dataset, participant_id, movie_id)
         self._ecg_signal_duration = None
 
     def load_ground_truth(self):
         return 0
 
     def get_signal_metadata(self, signal_type):
+        dataset_meta = self.dataset.get_signal_metadata(signal_type)
         if signal_type == 'ECG':
-            return {
-                'signal_type': signal_type,
-                'sample_rate': ASCERTAIN_ECG_SAMPLE_RATE,
-                'n_channels': ASCERTAIN_ECG_N_CHANNELS,
-                'duration': self._ecg_signal_duration,
-            }
+            dataset_meta['duration'] = self._ecg_signal_duration
+        return dataset_meta
 
     def load_signal_data(self, signal_type):
         signal_data_file = self._signal_data_files[signal_type]

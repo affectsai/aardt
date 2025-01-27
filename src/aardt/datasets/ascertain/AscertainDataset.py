@@ -12,6 +12,7 @@
 #  express or implied. See the License for the specific language governing permissions and limitations
 #  under the License.
 
+import os
 import logging
 from pathlib import Path
 
@@ -101,7 +102,15 @@ class AscertainDataset(AERDataset):
             self.participant_ids.add(participant_id)
             for movie_id in all_trials[participant_id]:
                 self.media_ids.add(movie_id)
-                trial = AscertainTrial(participant_id, movie_id)
+                trial = AscertainTrial(self, participant_id, movie_id)
                 trial.signal_data_files = all_trials[participant_id][movie_id]
                 trial.signal_preprocessors = self.signal_preprocessors
                 self.trials.append(trial)
+
+    def get_signal_metadata(self, signal_type):
+        if signal_type == 'ECG':
+            return {
+                'signal_type': signal_type,
+                'sample_rate': 256,
+                'n_channels': 2,
+            }

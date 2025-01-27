@@ -124,6 +124,24 @@ class AERDataset(metaclass=abc.ABCMeta):
         """
         pass
 
+    @abc.abstractmethod
+    def get_signal_metadata(self, signal_type):
+        """
+        Returns a dict containing the requested signal's metadata. Mandatory keys include:
+        - 'signal_type' (the signal type)
+        - 'sample_rate' (in samples per second)
+        - 'n_channels' (the number of channels in the signal)
+
+        See subclasses for implementation-specific keys that may also be present.
+
+        :param signal_type: the type of signal for which to retrieve the metadata.
+        :return: a dict containing the requested signal's metadata
+        """
+        if signal_type not in self._signal_types:
+            raise ValueError('Signal type {} is not known in this AERTrial'.format(signal_type))
+
+        return {}
+    
     def get_working_dir(self):
         """
         Returns the working path for this AERDataset instance, given by:
