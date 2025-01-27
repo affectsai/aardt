@@ -4,14 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aardt"
-version = "0.0.1"
+version = "0.1.0"
 authors = [
   { name="Timothy C. Sweeney-Fanelli", email="tim@affects.ai" },
 ]
-description = "An utility package for working with AER Datasets such as ASCERTAIN, DREAMER, MANHOB-HCI, and more"
+description = "An extensible utility package for working with AER Datasets such as ASCERTAIN, CUADS, DREAMER and more"
 readme = "README.md"
 requires-python = ">=3.11"
-license = {file = "LICENSE.txt"}
+license = {file = "LICENSE"}
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",

@@ -23,8 +23,8 @@ from aardt.datasets.cuads import CuadsDataset
 from aardt.datasets.cuads.CuadsDataset import DEFAULT_DATASET_PATH, CUADS_NUM_MEDIA_FILES, \
     CUADS_NUM_PARTICIPANTS
 
-PARTICIPANT_OFFSET = 50
-MEDIAFILE_OFFSET = 20
+PARTICIPANT_OFFSET = 0
+MEDIAFILE_OFFSET = 0
 
 CUADS_NUM_PARTICIPANTS = 38
 CUADS_NUM_MEDIA_FILES = 20
@@ -51,14 +51,14 @@ class CuadsDatasetTest(unittest.TestCase):
         :return:
         """
         trial = self.dataset.trials[random.randint(0, len(self.dataset.trials) - 1)]
-        self.assertEqual(trial.load_signal_data('ECG').shape[0], 3)
+        self.assertEqual(trial.load_signal_data('ECG').shape[0], 4)
 
     def test_participant_id_offsets(self):
         min_id = min(self.dataset.participant_ids)
         max_id = max(self.dataset.participant_ids)
 
-        self.assertTrue(PARTICIPANT_OFFSET + 1 <= min_id)
-        self.assertTrue(PARTICIPANT_OFFSET + 1 + CUADS_NUM_PARTICIPANTS <= max_id)
+        self.assertEqual(PARTICIPANT_OFFSET + 1, min_id)
+        self.assertEqual(PARTICIPANT_OFFSET + CUADS_NUM_PARTICIPANTS, max_id)
 
     def test_media_id_offsets(self):
         min_id = min(self.dataset.media_ids)

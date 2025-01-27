@@ -17,8 +17,9 @@ config = {
     'datasets': {
         'ascertain': {
             'path': '/mnt/affectsai/datasets/ascertain',
-            'raw_data_path': 'ASCERTAIN_Raw'
-        },
+            'raw_data_path': 'ASCERTAIN_Raw',
+            'features_data_path': 'ASCERTAIN_Features'
+},
         'dreamer': {
             'path': '/mnt/affectsai/datasets/dreamer',
             'dreamer_data_filename': "DREAMER_Data.json"
