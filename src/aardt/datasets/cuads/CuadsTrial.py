@@ -38,11 +38,12 @@ CUADS_COLUMN_MAP = {
 }
 
 class CuadsTrial(AERTrial):
-    def __init__(self, dataset, segment_file, participant_id, movie_id, truth):
+    def __init__(self, dataset, segment_file, participant_id, movie_id, truth, shared_cache=None):
         super().__init__(dataset, participant_id, movie_id)
         self._truth = truth
         self._segmented_file = segment_file
         self._trial_duration = 0
+        self._shared_cache = shared_cache
 
     def load_ground_truth(self):
         return self._truth
@@ -52,16 +53,28 @@ class CuadsTrial(AERTrial):
         dataset_meta['duration'] = self._trial_duration
         return dataset_meta
 
-
     def load_signal_data(self, signal_type):
-        segment_data = np.loadtxt(self._segmented_file, delimiter=',', dtype=str, skiprows=1)
+        cache_key=f"CUADS_{self.participant_id}_{self.movie_id}"
+        segment_data = self._shared_cache.get(cache_key) if self._shared_cache is not None else None
+
+        if segment_data is None:
+            segment_data = np.loadtxt(self._segmented_file, delimiter=',', dtype=str, skiprows=1)
+            if self._shared_cache is not None:
+                self._shared_cache.set(cache_key, segment_data)
+
         self._trial_duration = segment_data.shape[1] / SAMPLE_RATE
 
         if signal_type == 'ECG':
-            data = np.array( segment_data[:, [ CUADS_COLUMN_MAP["SEGMENT_ECG_TIMESTAMP"],
-                                               CUADS_COLUMN_MAP["SEGMENT_ECG_LARA"],
-                                               CUADS_COLUMN_MAP["SEGMENT_ECG_LLLA"],
-                                               CUADS_COLUMN_MAP["SEGMENT_ECG_LLRA"]] ], dtype=float)
+            data = np.array(segment_data[:, [CUADS_COLUMN_MAP["SEGMENT_ECG_TIMESTAMP"],
+                                             CUADS_COLUMN_MAP["SEGMENT_ECG_LARA"],
+                                             CUADS_COLUMN_MAP["SEGMENT_ECG_LLLA"],
+                                             CUADS_COLUMN_MAP["SEGMENT_ECG_LLRA"]]], dtype=float)
+            return data.transpose()
+        elif signal_type == 'ECGHR':
+            data = np.array(segment_data[:, [CUADS_COLUMN_MAP["SEGMENT_ECG_TIMESTAMP"],
+                                             CUADS_COLUMN_MAP["SEGMENT_ECG_HR_LARA"],
+                                             CUADS_COLUMN_MAP["SEGMENT_ECG_HR_LLLA"],
+                                             CUADS_COLUMN_MAP["SEGMENT_ECG_HR_LLRA"]]], dtype=float)
             return data.transpose()
         elif signal_type == 'GSR':
             data = np.array( segment_data[:, [CUADS_COLUMN_MAP["SEGMENT_GSR_TIMESTAMP"],
@@ -71,6 +84,10 @@ class CuadsTrial(AERTrial):
         elif signal_type == 'PPG':
             data = np.array(segment_data[:, [CUADS_COLUMN_MAP["SEGMENT_GSR_TIMESTAMP"],
                                              CUADS_COLUMN_MAP["SEGMENT_PPG"]]], dtype=float)
+            return data.transpose()
+        elif signal_type == 'PPGHR':
+            data = np.array(segment_data[:, [CUADS_COLUMN_MAP["SEGMENT_GSR_TIMESTAMP"],
+                                             CUADS_COLUMN_MAP["SEGMENT_PPG_HR"]]], dtype=float)
             return data.transpose()
         else:
             raise ValueError('load_signal_data not implemented for signal type {}'.format(signal_type))

@@ -17,6 +17,8 @@ import logging
 import os
 from pathlib import Path
 
+from tensorboard.plugins.projector.projector_plugin import LRUCache
+
 from aardt import config
 from aardt.datasets import AERDataset
 from .CuadsTrial import CuadsTrial
@@ -47,7 +49,7 @@ class CuadsDataset(AERDataset):
         :param mediafile_offset: Constant value added to each media identifier within this dataset. For example, if
         mediafile_offset is 12, then Movie 1 from this dataset's raw data will be reported as Media ID 13.
         """
-        signals = ['ECG', 'PPG', 'GSR']
+        signals = ['ECG', 'PPG', 'GSR', 'ECGHR', 'PPGHR']
         super().__init__(signals, participant_offset, mediafile_offset)
 
         if dataset_path is None:
@@ -58,9 +60,11 @@ class CuadsDataset(AERDataset):
                 f'Invalid path to DREAMER dataset: {dataset_path}. Please correct and try again.')
 
         logger.info(f'Loading CUADS from {dataset_path} with signals {signals}.')
-        self.media_index_map = {}
+        self.media_index_map = {}               # Maps media name to int index
+        self.media_index_to_name = {}           # Maps media index back to name
+        self.participant_id_map = {}            # Maps participant number to int index
         self.dataset_path = Path(dataset_path)
-
+        self._trial_cache = LRUCache(10)
 
 
     def _preload_dataset(self):
@@ -89,13 +93,16 @@ class CuadsDataset(AERDataset):
         all_trials = {}
         for p in range(CUADS_NUM_PARTICIPANTS):
             cuads_participant_number = p + 1
-            dataset_participant_number = cuads_participant_number + self.participant_offset
-
             participant_id = f'CUADS_{cuads_participant_number:03}'
             participant_folder = os.path.join( self.dataset_path, participant_id )
             response_file = os.path.join( participant_folder, 'responses.csv' )
             if not os.path.exists(response_file):
                 continue
+
+            if cuads_participant_number not in self.participant_id_map:
+                self.participant_id_map[cuads_participant_number] = len(self.participant_id_map) + 1
+            dataset_participant_number = self.participant_id_map[cuads_participant_number] + self.participant_offset
+
 
             self.participant_ids.add(dataset_participant_number)
             if participant_id not in all_trials.keys():
@@ -112,6 +119,7 @@ class CuadsDataset(AERDataset):
 
                 if movie_name not in self.media_index_map:
                     self.media_index_map[movie_name] = len(self.media_index_map) + 1
+                    self.media_index_to_name[self.media_index_map[movie_name]] = movie_name
 
                 movie_id = self.media_index_map[movie_name] + self.media_file_offset
                 self.media_ids.add(movie_id)
@@ -119,7 +127,8 @@ class CuadsDataset(AERDataset):
                 trial = CuadsTrial(self, segmented_data_filepath,
                                dataset_participant_number,
                                movie_id,
-                               _to_quadrant(float(response[response_arousal]), float(response[response_valence])))
+                               _to_quadrant(float(response[response_arousal]), float(response[response_valence])),
+                               shared_cache=self._trial_cache)
                 trial.signal_preprocessors = self.signal_preprocessors
                 self.trials.append(trial)
 
@@ -144,3 +153,7 @@ class CuadsDataset(AERDataset):
             }
         else:
             raise ValueError('get_signal_metadata not implemented for signal type {}'.format(signal_type))
+
+    @property
+    def media_names_by_movie_id(self):
+        return self.media_index_to_name
