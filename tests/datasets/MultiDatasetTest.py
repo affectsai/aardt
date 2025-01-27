@@ -87,6 +87,8 @@ class CuadsDatasetTest(unittest.TestCase):
         split_1_participants = set([x.participant_id for x in trial_splits[0]])
         split_2_participants = set([x.participant_id for x in trial_splits[1]])
 
+        self.assertNotEqual(0, len(split_1_participants))
+        self.assertNotEqual(0, len(split_2_participants))
         self.assertEqual(len(trial_splits), 2)
         self.assertEqual(len(trial_splits[0]) + len(trial_splits[1]), len(self.multiset.trials))
         self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))
@@ -100,6 +102,9 @@ class CuadsDatasetTest(unittest.TestCase):
         self.assertEqual(len(trial_splits), 3)
         self.assertEqual(len(trial_splits[0]) + len(trial_splits[1]) + len(trial_splits[2]),
                          len(self.multiset.trials))
+        self.assertNotEqual(0, len(split_1_participants))
+        self.assertNotEqual(0, len(split_2_participants))
+        self.assertNotEqual(0, len(split_3_participants))
         self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))
         self.assertEqual(0, len(split_1_participants.intersection(split_3_participants)))
         self.assertEqual(0, len(split_2_participants.intersection(split_3_participants)))
