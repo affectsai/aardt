@@ -71,6 +71,29 @@ class DreamerDataset(AERDataset):
         if not self._dataset_file.exists():
             raise ValueError('Path to DREAMER dataset does not exist: {}'.format(self._dataset_file.resolve()))
 
+        self.media_index_to_name = {}           # Maps media index back to name
+        self._expected_results = {
+            # DREAMER: A Database for Emotion Recognition Through EEG and ECG Signals from Wireless Low-cost Off-the-Shelf Devices
+            1+ mediafile_offset: 2,   # Searching for Bobby Fisher
+            2+ mediafile_offset: 1,   # D.O.A
+            3+ mediafile_offset: 1,   # The Hangover
+            4+ mediafile_offset: 2,   # The Ring
+            5+ mediafile_offset: 1,   # 300
+            6+ mediafile_offset: 2,   # National Lampoon's Van Wilder
+            7+ mediafile_offset: 1,   # Wall-E
+            8+ mediafile_offset: 2,   # Crash
+            9+ mediafile_offset: 2,   # My Girl
+            10+ mediafile_offset: 2,  # The Fly
+            11+ mediafile_offset: 4,  # Pride and Prejudice
+            12+ mediafile_offset: 4,  # Modern Times
+            13+ mediafile_offset: 1,  # Remember the Titans
+            14+ mediafile_offset: 3,  # Gentlemans Agreement
+            15+ mediafile_offset: 2,  # Phsycho
+            16+ mediafile_offset: 1,  # The Bourne IDentity
+            17+ mediafile_offset: 3,  # The Shawshank Redemption
+            18+ mediafile_offset: 2,  # The Departed
+        }
+
     def get_working_path(self, participant_id=None, media_id=None, signal_type=None, stimuli=True):
         if media_id is not None and participant_id is None:
             raise ValueError('participant_id must be given if media_id is specified.')
@@ -126,6 +149,7 @@ class DreamerDataset(AERDataset):
             for c in range(DREAMER_NUM_MEDIA_FILES):
                 c += 1
                 media_id = c + self.media_file_offset
+                self.media_index_to_name[media_id] = media_id  # no names, just ids... 1:1 map
                 self.media_ids.add(c + self.media_file_offset)
                 trial = DreamerTrial(self, participant_id, media_id)
                 trial.signal_preprocessors = self.signal_preprocessors
@@ -133,3 +157,11 @@ class DreamerDataset(AERDataset):
                     trial.signal_types.add(signal)
                     trial.signal_data_files[signal] = self.get_working_path(participant_id, media_id, signal)
                 self.trials.append(trial)
+
+    @property
+    def media_names_by_movie_id(self):
+        return self.media_index_to_name
+
+    @property
+    def expected_media_responses(self):
+        return self._expected_results

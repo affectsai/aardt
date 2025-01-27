@@ -14,6 +14,7 @@
 import numpy as np
 
 from aardt.datasets import AERTrial
+from pathlib import Path
 
 DREAMER_ECG_SAMPLE_RATE = 256
 DREAMER_ECG_N_CHANNELS = 2
@@ -23,6 +24,20 @@ class DreamerTrial(AERTrial):
     def __init__(self, dataset, participant_id, movie_id):
         super().__init__(dataset, participant_id, movie_id)
 
+    def _to_quadrant(self,a,v):
+        q=-1
+        if a >= 3:  # A is high
+            if v >= 3:  # A is High, V is Neg = Quad 0
+                q = 1
+            else:
+                q = 2
+        else:
+            if v < 3:
+                q = 3
+            else:
+                q = 4
+        return q
+
     def load_signal_data(self, signal_type):
         signal = np.load(self.dataset.get_working_path(self.participant_id, self.movie_id, signal_type))
         time_steps = (np.arange(0, signal.shape[0]) * 1000 / 256).reshape(-1, 1)
@@ -31,7 +46,10 @@ class DreamerTrial(AERTrial):
         return result.transpose()
 
     def load_ground_truth(self):
-        return 0
+        participant_path = self.dataset.get_working_path(self.participant_id)
+        ar=np.load(participant_path / Path('arousal.npy'))
+        va=np.load(participant_path / Path('valence.npy'))
+        return self._to_quadrant(ar[self.movie_id-self.dataset.media_file_offset-1], va[self.movie_id-self.dataset.media_file_offset-1])
 
     def get_signal_metadata(self, signal_type):
         dataset_meta = self.dataset.get_signal_metadata(signal_type)
