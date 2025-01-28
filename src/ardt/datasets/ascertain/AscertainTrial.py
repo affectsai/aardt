@@ -38,7 +38,7 @@ class AscertainTrial(AERTrial):
             dataset_meta['duration'] = self._ecg_signal_duration
         return dataset_meta
 
-    def load_signal_data(self, signal_type):
+    def load_raw_signal_data(self, signal_type):
         signal_data_file = self._signal_data_files[signal_type]
         matfile = scipy.io.loadmat(signal_data_file)
 

@@ -1,12 +1,84 @@
 # Affective Research Dataset Toolkit (ARDT)
 AARDT, pronouced "_art_," is a utility library for working with AER Datasets available to the academic community for research in 
 automated emotion recognition. While it may likely be applied to datasets in other research areas, the author(s)' 
-are primarily focused on AER. 
+are primarily focused on AER.
 
 Quick Index of this README:
 - Want to know if you can use it? Jump to [Intended Use and License](#license)
 - Want to know how to use it? Jump to [Quick Start](#quickstart)
 - Want to help out? Jump to [Contributing](#contributing)
+
+## Quick Start
+__Step 1: Installation__
+
+```bash
+pip install ardt
+```
+
+__Step 2: Configuration__
+
+Configure that paths to your AER datasets in the `ardt_config.yaml` file. In your project root, create a file named `ardt_config.yaml` like so:
+```yaml
+{
+    # Some ARDT dataset implementation may need to preprocess the raw data. When this happens, it'll store
+    # the intermediate outputs in the working_dir
+    'working_dir': '/mnt/datasets/ardt/working_storage',
+    
+    # Configure any datasets you want to use... key is defined by the AERDataset implementation itself.
+    # We show templates for the three dataset implementations provided out of the box, but you can add more or remove 
+    #  any of these as needed.
+    'datasets': {
+        # For ardt.dataets.ascertain.AscertainDataset:
+        'ascertain': {
+            # Path to the expanded ASCERTAIN dataset:
+            'path': '/mnt/datasets/ascertain',
+            
+            # Names of the subfolders under ASCERTAIN where you expanded ASCERTAIN_Raw.zip and ASCERTAIN_Features.zip respectively:
+            'raw_data_path': 'ASCERTAIN_Raw',
+            'features_data_path': 'ASCERTAIN_Features'
+        },
+        # For ardt.dataets.dreamer.DreamerDataset:
+        'dreamer': {
+            'path': '/mnt/datasets/dreamer',
+            'dreamer_data_filename': "DREAMER_Data.json"
+        },
+        # For ardt.dataset.cuads.CuadsDataset:
+        'cuads': {
+            'path': '/mnt/datasets/cuads',
+        }
+    },
+}
+```
+
+__Step 3: Consume a Dataset__
+
+In the simplest possible case, you just want to load a single dataset and iterate over its trials. Most likely you 
+also want to process one of the trial's recorded signals. The following example prints trial data and does something
+with that trial's ECG signal data...
+```python
+from ardt.datasets.cuads import CuadsDataset
+
+# Loads cuads from the datasets.cuads.path in ardt_config.yaml
+dataset = CuadsDataset()
+dataset.preload()           # always call preload prior to load_trials
+dataset.load_trials()       # loads the dataset trial data...
+
+for trial in dataset.trials:
+    print(f'Participant {trial.participant_id} viewed media file {trial.media_name} '
+          f'and evaluated it into quadrant {trial.participapant_response}. '
+          f'Expected response was {trial.expected_response}')
+    
+    process_ecg_signal(trial.load_signal_data('ECG'))    
+```
+
+__Step 4: Learn About What Else You Can Do:__
+
+ARDT is a versatile framework that allows you to work with multiple datasets simultaneously. It provides APIs to wrap 
+the datasets in TensorFlow Datasets for machine learning, and a comprehensive preprocessing pipeline for signal filtering
+and manipulation. 
+
+Much of this is covered in this README. For additional assistance you can open an issue on our GitHub, or reach out to
+the authors directly.
 
 ## Intended Use and License
 <a name="license"></a>

@@ -43,14 +43,23 @@ class AERTrial(abc.ABC):
         self._signal_data_files = {}
         self._movie_id = movie_id
 
-    def load_preprocessed_signal_data(self, signal_type: str):
-        signal_data = self.load_signal_data(signal_type)
+
+    def load_preprocessed_signal_data(selfself,signal_type: str):
+        '''
+        deprecated ... don't use.
+        :param signal_type:
+        :return:
+        '''
+        return self.load_signal_data(signal_type)
+
+    def load_signal_data(self, signal_type: str):
+        signal_data = self.load_raw_signal_data(signal_type)
         if signal_type in self.signal_preprocessors.keys():
             signal_data = self.signal_preprocessors[signal_type](signal_data)
         return signal_data
 
     @abc.abstractmethod
-    def load_signal_data(self, signal_type: str):
+    def load_raw_signal_data(self, signal_type: str):
         """
         Loads and returns the requested signal as an (N+1)xM numpy array, where N is the number of channels, and M is
         the number of samples in the signal. The row at N=0 represents the timestamp of each sample. The value is
@@ -170,6 +179,11 @@ class AERTrial(abc.ABC):
         return self._participant_id + self.dataset.participant_offset
 
     @property
+    def participant_response(self):
+        self.load_ground_truth()
+
+    @property
     def expected_response(self):
         expected_responses = self.dataset.expected_media_responses
         return expected_responses[self.media_id-self.dataset.media_file_offset]
+

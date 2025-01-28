@@ -53,7 +53,7 @@ class CuadsTrial(AERTrial):
         dataset_meta['duration'] = self._trial_duration
         return dataset_meta
 
-    def load_signal_data(self, signal_type):
+    def load_raw_signal_data(self, signal_type):
         cache_key=f"CUADS_{self.participant_id}_{self.media_id}"
         segment_data = self._shared_cache.get(cache_key) if self._shared_cache is not None else None
 

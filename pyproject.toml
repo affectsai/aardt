@@ -24,6 +24,7 @@ dependencies = [
     "ijson",
     "neurokit2",
     "numpy",
+    "pyyaml",
     "scikit_learn",
     "scipy",
     "tensorboard>=2.18.0",

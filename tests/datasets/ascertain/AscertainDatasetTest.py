@@ -167,7 +167,7 @@ class AscertainDatasetTest(unittest.TestCase):
         media_ids = sorted(self.ecg_dataset.media_ids)
         self.assertEqual(len(media_ids), len(self.ecg_dataset.expected_media_responses))
         for media_id in media_ids:
-            self.assertIsNotNone(self.ecg_dataset.expected_media_responses[media_id])
+            self.assertIsNotNone(self.ecg_dataset.expected_media_responses[media_id-self.ecg_dataset.media_file_offset])
 
 if __name__ == '__main__':
     unittest.main()

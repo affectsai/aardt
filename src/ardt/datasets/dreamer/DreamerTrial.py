@@ -38,7 +38,7 @@ class DreamerTrial(AERTrial):
                 q = 4
         return q
 
-    def load_signal_data(self, signal_type):
+    def load_raw_signal_data(self, signal_type):
         if signal_type == 'ECG':
             signal = np.load(self.dataset.get_working_path(self.participant_id, self.media_id, signal_type))
             time_steps = (np.arange(0, signal.shape[0]) * 1000 / 256).reshape(-1, 1)
