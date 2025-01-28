@@ -44,7 +44,7 @@ class AERTrial(abc.ABC):
         self._movie_id = movie_id
 
 
-    def load_preprocessed_signal_data(selfself,signal_type: str):
+    def load_preprocessed_signal_data(self,signal_type: str):
         '''
         deprecated ... don't use.
         :param signal_type:
