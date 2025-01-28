@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import scipy.io
 
-from aardt.datasets import AERTrial
+from ardt.datasets import AERTrial
 
 ASCERTAIN_ECG_SAMPLE_RATE = 256
 ASCERTAIN_ECG_N_CHANNELS = 2

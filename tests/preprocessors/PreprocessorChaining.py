@@ -14,7 +14,7 @@
 
 import unittest
 
-from aardt.preprocessors import SignalPreprocessor
+from ardt.preprocessors import SignalPreprocessor
 
 
 class PreprocessorA(SignalPreprocessor):

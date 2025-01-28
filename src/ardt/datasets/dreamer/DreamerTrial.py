@@ -13,7 +13,7 @@
 #  under the License.
 import numpy as np
 
-from aardt.datasets import AERTrial
+from ardt.datasets import AERTrial
 from pathlib import Path
 
 DREAMER_ECG_SAMPLE_RATE = 256

@@ -1,4 +1,4 @@
-# Affects AI Research Dataset Toolkit (AARDT)
+# Affective Research Dataset Toolkit (ARDT)
 AARDT, pronouced "_art_," is a utility library for working with AER Datasets available to the academic community for research in 
 automated emotion recognition. While it may likely be applied to datasets in other research areas, the author(s)' 
 are primarily focused on AER. 
@@ -41,11 +41,11 @@ dataset authors and download them before following this guide.
 In this example we assume that you have downloaded DREAMER, which is provided in a single JSON file, and that it is stored at `${DREAMER_HOME}/DREAMER_Data.json`.
 
 __Step 1 - Instantiate an AERDataset:__
-The AERDataset is the baseclass for all AER datasets, and the details of interacting with each one is in its subclasses, which currently includes `aardt.datasets.ascertain.AscertainDataset` and `aardt.datasets.dreamer.DreamerDataset`. Instantiate a `DreamerDataset` like so:
+The AERDataset is the baseclass for all AER datasets, and the details of interacting with each one is in its subclasses, which currently includes `ardt.datasets.ascertain.AscertainDataset` and `ardt.datasets.dreamer.DreamerDataset`. Instantiate a `DreamerDataset` like so:
 
 ```python
 import os
-from aardt.datasets.dreamer import DreamerDataset
+from ardt.datasets.dreamer import DreamerDataset
 
 # Typically you'd load this from a configuration file... we'll get to that later.
 dreamer_home = os.environ['DREAMER_HOME']
@@ -87,7 +87,7 @@ for trial in ecg_signal.trials:
 ```
 
 That's it! And its the same regardless of which AER dataset you are using. If you want to use ASCERTAIN instead of DREAMER, 
-just replace `aardt.datasets.dreamer.DreamerDataset` with `aardt.datasets.ascertain.AscertainDataset`, everything else remains
+just replace `ardt.datasets.dreamer.DreamerDataset` with `ardt.datasets.ascertain.AscertainDataset`, everything else remains
 the same.
 
 ### Preprocessing signals
@@ -99,8 +99,8 @@ the `FixedDurationPreprocessor` to do this automatically, like so:
 
 ```python
 import os
-from aardt.datasets.dreamer import DreamerDataset
-from aardt.preprocessors import FixedDurationPreprocessor
+from ardt.datasets.dreamer import DreamerDataset
+from ardt.preprocessors import FixedDurationPreprocessor
 
 # Typically you'd load this from a configuration file... we'll get to that later.
 dreamer_home = os.environ['DREAMER_HOME']
@@ -108,7 +108,8 @@ ecg_dataset = DreamerDataset(dreamer_home, signals=['ECG'])
 
 # Add the preprocessor pipeline to the dataset, for the signal it should be applied to.
 # Each signal type can have its own preprocessor pipeline.
-ecg_dataset.signal_preprocessors['ECG'] = FixedDurationPreprocessor(signal_duration=30, sample_rate=256, padding_value=0)
+ecg_dataset.signal_preprocessors['ECG'] = FixedDurationPreprocessor(signal_duration=30, sample_rate=256,
+                                                                    padding_value=0)
 
 # Preload and load the dataset...
 ecg_dataset.preload()
@@ -123,7 +124,7 @@ for trial in ecg_dataset.trials:
     # If the signal was less than 30s originally, it was padded on the left 
     # with 0 values. 
     ecg_signal_30s = trial.load_signal_data('ECG')
-    
+
     # Do something with ecg_signal_30s
 ```
 
@@ -133,20 +134,21 @@ let's say we want to normalize the signal to values between 0 and 1, and also tr
 
 ```python
 import os
-import numpy as np 
-from sklearn import preprocessing as p 
+import numpy as np
+from sklearn import preprocessing as p
 
-from aardt.datasets.dreamer import DreamerDataset
-from aardt.preprocessors import FixedDurationPreprocessor
+from ardt.datasets.dreamer import DreamerDataset
+from ardt.preprocessors import FixedDurationPreprocessor
 
 
-class MyNormalizer(aardt.preprocessors.SignalPreprocessor):
+class MyNormalizer(ardt.preprocessors.SignalPreprocessor):
     def __init__(self, parent_preprocessor=None):
         super().__init__(parent_preprocessor)
 
     def process_signal(self, signal):
-        min_max_scaler = p.MinMaxScaler() 
-        return min_max_scaler.fit_transform(signal) 
+        min_max_scaler = p.MinMaxScaler()
+        return min_max_scaler.fit_transform(signal)
+
 
 dreamer_home = os.environ['DREAMER_HOME']
 ecg_dataset = DreamerDataset(dreamer_home, signals=['ECG'])
@@ -170,7 +172,7 @@ for trial in ecg_dataset.trials:
     # and has been normalized using the MinMaxScaler to values between 
     # 0 and 1.
     ecg_signal = trial.load_signal_data('ECG')
-    
+
 ```
 
 Note that the order of your pipeline is critically important. Here, we apply `FixedDurationPreprocessor` first, _before_ 
@@ -202,11 +204,11 @@ To facilitate use with TensorFlow, use the `TFDatasetWrapper` to decorate your `
 for use with `tf.model.fit()`
 
 ```python
-import aardt.datasets
+import ardt.datasets
 
 # Don't forget to setup your preprocessor pipelines, then preload and 
 # load the dataset first!
-tfdsw = aardt.datasets.TFDatasetWrapper(ecg_dataset)
+tfdsw = ardt.datasets.TFDatasetWrapper(ecg_dataset)
 
 # Create the tf.data.Dataset 
 tfdataset = tfdsw('ECG', batch_size=64, buffer_size=500, repeat=1)
@@ -220,14 +222,15 @@ myModel.fit(tfdataset)
 
 To separate training, validation and test splits, you can specify the splits to the `TFDatasetWrapper` and then indicate
 which split you intend when you call it.
+
 ```python
-import aardt.datasets
+import ardt.datasets
 
 # Don't forget to setup your preprocessor pipelines, then preload and 
 # load the dataset first!
 
 # Specify 60% of participants for the training split, 30% for validation and 10% for testing.
-tfdsw = aardt.datasets.TFDatasetWrapper(ecg_dataset, splits=[.6, .3, .1])
+tfdsw = ardt.datasets.TFDatasetWrapper(ecg_dataset, splits=[.6, .3, .1])
 
 # Setup your tensorflow model, then use the tfdataset:
 myModel = get_tensorflow_model()
@@ -275,30 +278,30 @@ instances of `AERTrial`.
 All the implementation details, including dataset layout and access details, are encapsulated in your implementation of 
 this base class. See any of the existing implementations for examples. We provide implementations for ASCERTAIN, CUADS, 
 and DREAMER each of which is thoroughly commented. See 
-* `src/aardt/datasets/ascertain/Ascertaindataset.py`, 
-* `src/aardt/datasets/dreamer/DreamerDataset.py`, 
-* `src/aardt/datasets/cuads/CuadsDataset.py`.
+* `src/ardt/datasets/ascertain/Ascertaindataset.py`, 
+* `src/ardt/datasets/dreamer/DreamerDataset.py`, 
+* `src/ardt/datasets/cuads/CuadsDataset.py`.
 
 To extend `AERDataset` do the following:
-1. Create a new class as a subclass of AERDataset like so: 
+1. Create a new class as a subclass of AERDataset like so:
     ```python
-    from aardt.datasets import AERDataset
+    from ardt.datasets import AERDataset
     
     class MyAwesomeDataset(AERDataset):
         def __init__(self, signals):
             super().__init__(signals)
     ```
-    You should minimally provide a list of signal types to `super.__init__`. This is a list of signal types provided by this 
-    dataset, e.g.: `['ECG','EEG']`. Feel free to add whatever additional arguments you might need to support your implementation.
+    You should minimally provide a list of signal types to `super.__init__`. This is a list of signal types provided by this
+   dataset, e.g.: `['ECG','EEG']`. Feel free to add whatever additional arguments you might need to support your implementation.
 
 
-2. Override `load_trials(self)` and `get_signal_metadata` methods from AERDataset. `load_trial(self)` is where all the 
-hard work of implementing a dataset is done... here, you will parse the dataset to produce individual `AERTrial` 
+2. Override `load_trials(self)` and `get_signal_metadata` methods from AERDataset. `load_trial(self)` is where all the
+   hard work of implementing a dataset is done... here, you will parse the dataset to produce individual `AERTrial` 
 instances. `get_signal_metadata(self,signal)` returns a map of metadata about the requested signal. Minimally this should include: 
    * `n_channels`: the number of channels for this signal, and
    * `sample_rate`: the sample rate in Hz for this signal
     ```python
-    from aardt.datasets import AERDataset
+    from ardt.datasets import AERDataset
         
     class MyAwesomeDataset(AERDataset):
         def __init__(self, signals):
@@ -349,9 +352,9 @@ instances. `get_signal_metadata(self,signal)` returns a map of metadata about th
     ```
    
 
-   3. Create a new class as a subclass of AERTrial like so: 
+   3. Create a new class as a subclass of AERTrial like so:
        ```python
-       from aardt.datasets import AERTrial
+       from ardt.datasets import AERTrial
     
        class MyAwesomeDatasetTrial(AERTrial):
            def __init__(self, dataset, participant_id, movie_id)):
@@ -409,9 +412,9 @@ instances. `get_signal_metadata(self,signal)` returns a map of metadata about th
                return response    
        ```
    
-       The AERTrial takes a reference to the dataset that created it, and the participant_id and media_id that this 
-       trial represents. It must implement `load_signal_data` and `load_ground_truth` as documented. It may optionally
-       override `get_signal_metadata` to augment the response from the dataset, for example, to include signal duration.
+       The AERTrial takes a reference to the dataset that created it, and the participant_id and media_id that this
+      trial represents. It must implement `load_signal_data` and `load_ground_truth` as documented. It may optionally
+      override `get_signal_metadata` to augment the response from the dataset, for example, to include signal duration.
 
 There is more to it than this but this should be enough to get you started. See the `AERDataset` and `AERTrial` classes
 for method documentation, and then CUADS, ASCERTAIN and DREAMER examples for guidance.

@@ -16,7 +16,7 @@ import unittest
 
 import numpy as np
 
-from aardt.preprocessors.transformers.MinMaxScaler import MinMaxScaler
+from ardt.preprocessors.transformers.MinMaxScaler import MinMaxScaler
 
 
 class MinMaxScalarTest(unittest.TestCase):

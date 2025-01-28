@@ -15,17 +15,17 @@
 import random
 import unittest
 
-from aardt.datasets import TFDatasetWrapper
-from aardt.datasets.ascertain import AscertainDataset
-from aardt.datasets.ascertain.AscertainDataset import DEFAULT_ASCERTAIN_PATH, ASCERTAIN_NUM_MEDIA_FILES, \
+from ardt.datasets import TFDatasetWrapper
+from ardt.datasets.ascertain import AscertainDataset
+from ardt.datasets.ascertain.AscertainDataset import DEFAULT_ASCERTAIN_PATH, ASCERTAIN_NUM_MEDIA_FILES, \
     ASCERTAIN_NUM_PARTICIPANTS
-from aardt.datasets.dreamer import DreamerDataset
-from aardt.datasets.dreamer.DreamerDataset import DEFAULT_DREAMER_PATH, DREAMER_NUM_PARTICIPANTS, \
+from ardt.datasets.dreamer import DreamerDataset
+from ardt.datasets.dreamer.DreamerDataset import DEFAULT_DREAMER_PATH, DREAMER_NUM_PARTICIPANTS, \
     DREAMER_NUM_MEDIA_FILES
-from aardt.datasets.cuads import CuadsDataset
-from aardt.datasets.cuads.CuadsDataset import CUADS_NUM_TRIALS
+from ardt.datasets.cuads import CuadsDataset
+from ardt.datasets.cuads.CuadsDataset import CUADS_NUM_TRIALS
 
-from aardt.preprocessors import FixedDurationPreprocessor
+from ardt.preprocessors import FixedDurationPreprocessor
 
 
 class TFDataSetWrapperTest(unittest.TestCase):

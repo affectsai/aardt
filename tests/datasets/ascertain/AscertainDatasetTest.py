@@ -19,8 +19,8 @@ from pathlib import Path
 
 import numpy as np
 
-from aardt.datasets.ascertain import AscertainDataset
-from aardt.datasets.ascertain.AscertainDataset import DEFAULT_ASCERTAIN_PATH, ASCERTAIN_NUM_MEDIA_FILES, \
+from ardt.datasets.ascertain import AscertainDataset
+from ardt.datasets.ascertain.AscertainDataset import DEFAULT_ASCERTAIN_PATH, ASCERTAIN_NUM_MEDIA_FILES, \
     ASCERTAIN_NUM_PARTICIPANTS, ASCERTAIN_RAW_FOLDER
 
 PARTICIPANT_OFFSET = 50

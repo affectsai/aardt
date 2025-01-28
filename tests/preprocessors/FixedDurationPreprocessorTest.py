@@ -16,7 +16,7 @@ import unittest
 
 import numpy as np
 
-from aardt.preprocessors import FixedDurationPreprocessor
+from ardt.preprocessors import FixedDurationPreprocessor
 
 # Test parameters
 LONG_SIGNAL_DURATION = 10

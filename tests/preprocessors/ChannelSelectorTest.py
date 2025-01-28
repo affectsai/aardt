@@ -16,7 +16,7 @@ import unittest
 
 import numpy as np
 
-from aardt.preprocessors.ChannelSelector import ChannelSelector
+from ardt.preprocessors.ChannelSelector import ChannelSelector
 
 # Test parameters
 SIGNAL_DURATION = 10

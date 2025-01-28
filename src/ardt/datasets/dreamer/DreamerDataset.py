@@ -19,8 +19,8 @@ from pathlib import Path
 import ijson
 import numpy as np
 
-from aardt import config
-from aardt.datasets import AERDataset
+from ardt import config
+from ardt.datasets import AERDataset
 from .DreamerTrial import DreamerTrial
 
 CONFIG = config['datasets']['dreamer']

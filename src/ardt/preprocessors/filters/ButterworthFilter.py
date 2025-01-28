@@ -23,25 +23,49 @@
 #  is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
 #  express or implied. See the License for the specific language governing permissions and limitations
 #  under the License.
-from sklearn import preprocessing as p
 
-from aardt.preprocessors import SignalPreprocessor
+from scipy.signal import butter, lfilter, sosfilt, zpk2sos
+
+from ardt.preprocessors import SignalPreprocessor
 
 
-class MinMaxScaler(SignalPreprocessor):
-    """
-    Applies a sklearn.preprocessing.MinMaxScaler to the signal data.
-    """
-
-    def __init__(self, feature_range=(0, 1), parent_preprocessor=None, child_preprocessor=None):
+class ButterworthFilter(SignalPreprocessor):
+    def __init__(self, order, frequencies, btype, analog=False, output='ba', Fs=None,
+                 parent_preprocessor=None, child_preprocessor=None):
         """
+        See :scipy.signal.butter:`scipy.signal.butter` for parameter details.
 
-        :param feature_range: the desired feature range for the sklearn.preprocessing.MinMaxScaler
+        :param order: The order of the filter (N)
+        :param frequencies: The critical frequencies (Wn)
+        :param btype: The type of filter: 'lowpass','highpass','bandstop','bandpass'
+        :param analog: When true, applies an analog filter, otherwise digital
+        :param output: Type of output
+        :param Fs: The sampling frequency of the digital system
         :param parent_preprocessor:
         """
         super().__init__(parent_preprocessor, child_preprocessor)
-        self._feature_range = feature_range
+        self._order = order
+        self._frequencies = frequencies
+        self._btype = btype
+        self._analog = analog
+        self._output = output
+        self._Fs = Fs
 
     def process_signal(self, signal):
-        min_max_scaler = p.MinMaxScaler(feature_range=self._feature_range)
-        return min_max_scaler.fit_transform(signal)
+        design = butter(
+            self._order,
+            self._frequencies,
+            btype=self._btype,
+            analog=self._analog,
+            output=self._output,
+            fs=self._Fs)
+
+        if self._output == 'ba':
+            return lfilter(design[0], design[1], signal, axis=1)
+        elif self._output == 'sos':
+            return sosfilt(design, signal, axis=1)
+        elif self._output == 'zpk':
+            sos = zpk2sos(design[0], design[1], design[2])
+            return sosfilt(sos, signal, axis=1)
+        else:
+            raise ValueError('Unknown output type for butterworth filter: {}'.format(self._output))

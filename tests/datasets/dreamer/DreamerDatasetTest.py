@@ -15,9 +15,9 @@
 import random
 import unittest
 
-from aardt.datasets.dreamer.DreamerDataset import (DEFAULT_DREAMER_PATH, DEFAULT_DREAMER_FILENAME,
-                                                   DREAMER_NUM_MEDIA_FILES, DREAMER_NUM_PARTICIPANTS)
-from aardt.datasets.dreamer.DreamerDataset import DreamerDataset
+from ardt.datasets.dreamer.DreamerDataset import (DEFAULT_DREAMER_PATH, DEFAULT_DREAMER_FILENAME,
+                                                  DREAMER_NUM_MEDIA_FILES, DREAMER_NUM_PARTICIPANTS)
+from ardt.datasets.dreamer.DreamerDataset import DreamerDataset
 
 PARTICIPANT_OFFSET = 50
 MEDIAFILE_OFFSET = 20

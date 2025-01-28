@@ -19,8 +19,8 @@ from pathlib import Path
 
 import numpy as np
 
-from aardt.datasets.cuads import CuadsDataset
-from aardt.datasets.cuads.CuadsDataset import DEFAULT_DATASET_PATH, CUADS_NUM_MEDIA_FILES, \
+from ardt.datasets.cuads import CuadsDataset
+from ardt.datasets.cuads.CuadsDataset import DEFAULT_DATASET_PATH, CUADS_NUM_MEDIA_FILES, \
     CUADS_NUM_PARTICIPANTS
 
 PARTICIPANT_OFFSET = 5

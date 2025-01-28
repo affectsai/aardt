@@ -17,7 +17,7 @@ import abc
 
 import numpy as np
 
-from aardt.datasets import AERDataset
+from ardt.datasets import AERDataset
 
 
 class AERTrial(abc.ABC):

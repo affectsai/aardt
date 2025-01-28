@@ -19,8 +19,8 @@ from pathlib import Path
 
 from tensorboard.plugins.projector.projector_plugin import LRUCache
 
-from aardt import config
-from aardt.datasets import AERDataset
+from ardt import config
+from ardt.datasets import AERDataset
 from .CuadsTrial import CuadsTrial
 import numpy as np
 

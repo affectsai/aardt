@@ -13,7 +13,7 @@
 #  under the License.
 import numpy as np
 
-from aardt.preprocessors import SignalPreprocessor
+from ardt.preprocessors import SignalPreprocessor
 
 
 class ChannelSelector(SignalPreprocessor):

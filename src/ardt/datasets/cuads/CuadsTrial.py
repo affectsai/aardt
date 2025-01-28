@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import scipy.io
 
-from aardt.datasets import AERTrial
+from ardt.datasets import AERTrial
 
 SAMPLE_RATE = 256
 

@@ -14,7 +14,7 @@
 import neurokit2 as nk2
 import numpy as np
 
-from aardt.preprocessors import SignalPreprocessor
+from ardt.preprocessors import SignalPreprocessor
 
 
 class NK2ECGProcess(SignalPreprocessor):

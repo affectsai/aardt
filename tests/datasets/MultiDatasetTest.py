@@ -19,13 +19,13 @@ from pathlib import Path
 
 import numpy as np
 
-from aardt.datasets import TFDatasetWrapper
-from aardt.datasets.MultiDataset import MultiDataset
-from aardt.datasets.ascertain import AscertainDataset
-from aardt.datasets.cuads import CuadsDataset
-from aardt.datasets.dreamer import DreamerDataset
-from aardt.preprocessors import FixedDurationPreprocessor
-from aardt.preprocessors.ChannelSelector import ChannelSelector
+from ardt.datasets import TFDatasetWrapper
+from ardt.datasets.MultiDataset import MultiDataset
+from ardt.datasets.ascertain import AscertainDataset
+from ardt.datasets.cuads import CuadsDataset
+from ardt.datasets.dreamer import DreamerDataset
+from ardt.preprocessors import FixedDurationPreprocessor
+from ardt.preprocessors.ChannelSelector import ChannelSelector
 
 
 class MultiDatasetTest(unittest.TestCase):
