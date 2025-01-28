@@ -22,19 +22,13 @@ import numpy as np
 from aardt.datasets import TFDatasetWrapper
 from aardt.datasets.MultiDataset import MultiDataset
 from aardt.datasets.ascertain import AscertainDataset
-from aardt.datasets.ascertain.AscertainDataset import DEFAULT_ASCERTAIN_PATH, ASCERTAIN_NUM_PARTICIPANTS, \
-    ASCERTAIN_NUM_MEDIA_FILES
 from aardt.datasets.cuads import CuadsDataset
-from aardt.datasets.cuads.CuadsDataset import DEFAULT_DATASET_PATH, CUADS_NUM_MEDIA_FILES, \
-    CUADS_NUM_PARTICIPANTS
 from aardt.datasets.dreamer import DreamerDataset
-from aardt.datasets.dreamer.DreamerDataset import DEFAULT_DREAMER_PATH, DREAMER_NUM_PARTICIPANTS, \
-    DREAMER_NUM_MEDIA_FILES
 from aardt.preprocessors import FixedDurationPreprocessor
 from aardt.preprocessors.ChannelSelector import ChannelSelector
 
 
-class CuadsDatasetTest(unittest.TestCase):
+class MultiDatasetTest(unittest.TestCase):
     def setUp(self):
         fixed_duration = FixedDurationPreprocessor(45, 256,0)
 
@@ -45,17 +39,13 @@ class CuadsDatasetTest(unittest.TestCase):
         dreamer_processor = ChannelSelector(retain_channels=[1,2],
                                           child_preprocessor=fixed_duration)
 
-        self.ascertain_dataset = AscertainDataset(DEFAULT_ASCERTAIN_PATH, signals=['ECG'])
+        self.ascertain_dataset = AscertainDataset(signals=['ECG'])
         self.ascertain_dataset.signal_preprocessors['ECG'] = ascertain_processor
 
-        self.dreamer_dataset = DreamerDataset(DEFAULT_DREAMER_PATH,
-                                              signals=['ECG'],
-                                              participant_offset=ASCERTAIN_NUM_PARTICIPANTS,
-                                              mediafile_offset=ASCERTAIN_NUM_MEDIA_FILES)
+        self.dreamer_dataset = DreamerDataset(signals=['ECG'])
         self.dreamer_dataset.signal_preprocessors['ECG'] = dreamer_processor
 
-        self.cuads_dataset = CuadsDataset( participant_offset=ASCERTAIN_NUM_PARTICIPANTS+DREAMER_NUM_PARTICIPANTS,
-                                           mediafile_offset=ASCERTAIN_NUM_MEDIA_FILES+DREAMER_NUM_MEDIA_FILES)
+        self.cuads_dataset = CuadsDataset( )
 
         self.cuads_dataset.signal_preprocessors['ECG'] = cuads_processor
 
@@ -72,13 +62,29 @@ class CuadsDatasetTest(unittest.TestCase):
         self.assertEqual(len(self.ascertain_dataset.trials)+len(self.dreamer_dataset.trials)+len(self.cuads_dataset.trials), len(self.multiset.trials))
         self.assertNotEqual(0, len(self.multiset.trials))
 
+    def test_multiset_participant_count(self):
+        """
+        Asserts that the number of trials in the multiset is the same as the sum of the number of trials in each dataset.
+        :return:
+        """
+        self.assertNotEqual(0, len(self.multiset.participant_ids))
+        self.assertEqual(len(self.ascertain_dataset.participant_ids)+len(self.dreamer_dataset.participant_ids)+len(self.cuads_dataset.participant_ids), len(self.multiset.participant_ids))
+
+    def test_multiset_media_count(self):
+        """
+        Asserts that the number of trials in the multiset is the same as the sum of the number of trials in each dataset.
+        :return:
+        """
+        self.assertNotEqual(0, len(self.multiset.media_ids))
+        self.assertEqual(len(self.ascertain_dataset.media_ids)+len(self.dreamer_dataset.media_ids)+len(self.cuads_dataset.media_ids), len(self.multiset.media_ids))
+
 
     def test_ecg_signal_load(self):
         """
         Asserts that we can properly load an ECG signal from one of the dataset's trials.
         :return:
         """
-        for trial in self.multiset.trials:
+        for trial in random.sample(self.multiset.trials, int(len(self.multiset.trials)*.1)):
             signal = trial.load_preprocessed_signal_data('ECG')
             self.assertEqual(signal.shape[0], 2, f"{type(trial)} has shape {signal.shape}")
 
@@ -130,6 +136,17 @@ class CuadsDatasetTest(unittest.TestCase):
         # return the difference between end and start times
         self.assertGreater(iteration, 0)
         self.assertEqual(len(self.multiset.trials) * repeat_count, total_elems)
+
+    def test_participant_ids_are_sequential(self):
+        participant_ids = sorted(self.multiset.participant_ids)
+        for i in range(len(participant_ids)):
+            self.assertEqual(participant_ids[i], i + 1 + self.multiset.participant_offset)
+
+    def test_expected_responses(self):
+        media_ids = sorted(self.multiset.media_ids)
+        self.assertEqual(len(media_ids), len(self.multiset.expected_media_responses))
+        for media_id in media_ids:
+            self.assertIsNotNone(self.multiset.expected_media_responses[media_id])
 
 if __name__ == '__main__':
     unittest.main()

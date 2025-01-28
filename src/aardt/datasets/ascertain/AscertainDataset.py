@@ -32,6 +32,62 @@ ASCERTAIN_NUM_PARTICIPANTS = 58
 logger = logging.getLogger('AscertainDataset')
 logger.level = logging.DEBUG
 
+expected_classifications = {
+            # Taken from DECAF+ mediafile_offset: MEG-BASED MULTIMODAL DATABASE FOR DECODING AFFECTIVE PHYSIOLOGICAL RESPONSES
+            # Amusing
+            1: 1,   # Ace Ventura: Pet Detective
+            2: 1,   # The Gods Must Be Crazy II
+            4: 1,   # Airplane
+            5: 1,   # When Harry Met Sally
+
+            # Funny:
+            3: 1,   # Liar Liar
+            6: 1,   # The Gods Must Be Crazy
+            7: 1,   # The Hangover
+            9: 1,   # Hot Shots
+
+            # Happy:
+            8: 4,   # Up
+            10: 4,  # August Rush
+            11: 4,  # Truman Show
+            12: 4,  # Wall-E
+            13: 4,  # Love Actually
+            14: 4,  # Remember the Titans
+            16: 4,  # Life is Beautiful
+            17: 4,  # Slumdog Millionaire
+            18: 4,  # House of Flying Daggers
+
+            # Exciting
+            15: 1,  # Legally Blonde
+            33: 1,  # The Untouchables
+
+            # Angry
+            19: 3,  # Ghandi
+            21: 3,  # Lagaan
+            23: 3,  # My Bodyguard
+            35: 3,  # Crash
+
+            # Disgusting
+            28: 2,  # The Exorcist
+            34: 2,  # Pink Flamingos
+
+            # Fear:
+            30: 2,  # The Shining
+            36: 2,  # Black Swan
+
+            # Sad
+            20: 3,  # My Girl
+            22: 3,  # Bambi
+            24: 3,  # Up
+            25: 3,  # Life is Beautiful
+            26: 3,  # Remember the Titans
+            27: 3,  # Titanic
+            31: 3,  # Prestige
+
+            # Shock
+            29: 2,  # Mulholland Drive
+            32: 2,  # Alien
+        }
 
 class AscertainDataset(AERDataset):
     def __init__(self, ascertain_path=None, signals=None, participant_offset=0, mediafile_offset=0):
@@ -77,69 +133,16 @@ class AscertainDataset(AERDataset):
                 if p.is_dir():
                     self.signals.append(str(p.name).replace("Data", ""))
 
-        self._expected_results = {
-            # Taken from DECAF+ mediafile_offset: MEG-BASED MULTIMODAL DATABASE FOR DECODING AFFECTIVE PHYSIOLOGICAL RESPONSES
-            # Amusing
-            1+ mediafile_offset: 1,   # Ace Ventura+ mediafile_offset: Pet Detective
-            2+ mediafile_offset: 1,   # The Gods Must Be Crazy II
-            4+ mediafile_offset: 1,   # Airplane
-            5+ mediafile_offset: 1,   # When Harry Met Sally
-
-            # Funny:
-            3+ mediafile_offset: 1,   # Liar Liar
-            6+ mediafile_offset: 1,   # The Gods Must Be Crazy
-            7+ mediafile_offset: 1,   # The Hangover
-            9+ mediafile_offset: 1,   # Hot Shots
-
-            # Happy:
-            8+ mediafile_offset: 4,   # Up
-            10+ mediafile_offset: 4,  # August Rush
-            11+ mediafile_offset: 4,  # Truman Show
-            12+ mediafile_offset: 4,  # Wall-E
-            13+ mediafile_offset: 4,  # Love Actually
-            14+ mediafile_offset: 4,  # Remember the Titans
-            16+ mediafile_offset: 4,  # Life is Beautiful
-            17+ mediafile_offset: 4,  # Slumdog Millionaire
-            18+ mediafile_offset: 4,  # House of Flying Daggers
-
-            # Exciting
-            15+ mediafile_offset: 1,  # Legally Blonde
-            33+ mediafile_offset: 1,  # The Untouchables
-
-            # Angry
-            19+ mediafile_offset: 3,  # Ghandi
-            21+ mediafile_offset: 3,  # Lagaan
-            23+ mediafile_offset: 3,  # My Bodyguard
-            35+ mediafile_offset: 3,  # Crash
-
-            # Disgusting
-            28+ mediafile_offset: 2,  # The Exorcist
-            34+ mediafile_offset: 2,  # Pink Flamingos
-
-            # Fear:
-            30+ mediafile_offset: 2,  # The Shining
-            36+ mediafile_offset: 2,  # Black Swan
-
-            # Sad
-            20+ mediafile_offset: 3,  # My Girl
-            22+ mediafile_offset: 3,  # Bambi
-            24+ mediafile_offset: 3,  # Up
-            25+ mediafile_offset: 3,  # Life is Beautiful
-            26+ mediafile_offset: 3,  # Remember the Titans
-            27+ mediafile_offset: 3,  # Titanic
-            31+ mediafile_offset: 3,  # Prestige
-
-            # Shock
-            29+ mediafile_offset: 2,  # Mulholland Drive
-            32+ mediafile_offset: 2,  # Alien
-        }
+        self._expected_results = expected_classifications
 
     def _preload_dataset(self):
         pass
 
     def load_trials(self):
-        # Load trial data...
-        all_trials = {}
+        # Load ascertain data files...
+        # Map< participantId, Map< movieId, data_file_path >>
+        ascertain_datafiles = {}
+
         dt_selfreports_path = os.path.join(self.ascertain_features_path, "Dt_SelfReports.mat")
         dt_selfreports = scipy.io.loadmat(dt_selfreports_path)
 
@@ -151,18 +154,18 @@ class AscertainDataset(AERDataset):
             if signal_type not in self._signals:
                 continue
 
-            participant_id = int(movie_folder.split("_P")[1]) + self.participant_offset
+            participant_id = int(movie_folder.split("_P")[1]) # + self.participant_offset
             movie_id = int(matlab_file.name.upper().replace(f'{signal_type}_CLIP', '').replace('.MAT', ''))
-            movie_id += self.media_file_offset
+            # movie_id += self.media_file_offset
 
             self.media_index_to_name[movie_id] = movie_id   # no names, just ids... 1:1 map
-            if participant_id not in all_trials.keys():
-                all_trials[participant_id] = {}
+            if participant_id not in ascertain_datafiles.keys():
+                ascertain_datafiles[participant_id] = {}
 
-            if movie_id not in all_trials[participant_id].keys():
-                all_trials[participant_id][movie_id] = {}
+            if movie_id not in ascertain_datafiles[participant_id].keys():
+                ascertain_datafiles[participant_id][movie_id] = {}
 
-            all_trials[participant_id][movie_id][signal_type] = matlab_file.resolve()
+            ascertain_datafiles[participant_id][movie_id][signal_type] = matlab_file.resolve()
 
         def _to_quadrant(a,v):
             q=-1
@@ -178,15 +181,13 @@ class AscertainDataset(AERDataset):
                     q = 4
             return q
 
-        for participant_id in all_trials:
-            self.participant_ids.add(participant_id)
-            for movie_id in all_trials[participant_id]:
-                self.media_ids.add(movie_id)
+        for participant_id in ascertain_datafiles:
+            for movie_id in ascertain_datafiles[participant_id]:
                 arousal = dt_selfreports['Ratings'][0][participant_id - 1 - self.participant_offset][movie_id - 1 - self.media_file_offset]
                 valence = dt_selfreports['Ratings'][1][participant_id - 1 - self.participant_offset][movie_id - 1 - self.media_file_offset]
 
                 trial = AscertainTrial(self, participant_id, movie_id, _to_quadrant(arousal, valence))
-                trial.signal_data_files = all_trials[participant_id][movie_id]
+                trial.signal_data_files = ascertain_datafiles[participant_id][movie_id]
                 trial.signal_preprocessors = self.signal_preprocessors
                 self.trials.append(trial)
 
@@ -203,5 +204,5 @@ class AscertainDataset(AERDataset):
         return self.media_index_to_name
 
     @property
-    def expected_media_responses(self):
+    def _expected_media_responses(self):
         return self._expected_results

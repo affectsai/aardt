@@ -268,17 +268,153 @@ config = {
 
 Any additional properties you need can be added under the `cuads` element. 
 
-### Step 2: Implement AERDataset
-The `AERDataset` is the base class for all dataset implementations in AARDT. All the implementation details, including
-dataset layout and access details, are encapsulated in your implementation of this base class. See any of the existing 
-implementations for examples. We provide implementations for ASCERTAIN, CUADS, and DREAMER each of which is thoroughly 
-commented. See `src/aardt/datasets/ascertain/Ascertaindataset.py`, `src/aardt/datasets/dreamer/DreamerDataset.py`, 
-AND `src/aardt/datasets/cuads/CuadsDataset.py`.
+### Step 2: Implement AERDataset and AERTrial Subclasses
+The `AERDataset` is the base class for all dataset implementations in AARDT. It is primarily responsible for loading 
+instances of `AERTrial`. 
 
-Important notes for your implementation:
-* Your dataset must extend `AERDataset`
-* You are responsible for populating self.media_ids and self.participant_ids in the AERDataset super class. These mut be sets of integers. If your dataset does not use integer IDs for participants and media files, you can index them when you load your data. CUADS, for example, uses "CUADS_XXX" for participant IDs, where XXX is the participant number; and a non-numeric string for the media ID. Both of these are handled in the `load_trials()` method. 
-* You are responsible for adding the AERDataset's participant offset and media offset to each of your IDs when you populate `self.media_ids` and `self.participant_ids`. If you are only working with your own data, this is not very important, but it is necessary to combine multiple datasets together.
+All the implementation details, including dataset layout and access details, are encapsulated in your implementation of 
+this base class. See any of the existing implementations for examples. We provide implementations for ASCERTAIN, CUADS, 
+and DREAMER each of which is thoroughly commented. See 
+* `src/aardt/datasets/ascertain/Ascertaindataset.py`, 
+* `src/aardt/datasets/dreamer/DreamerDataset.py`, 
+* `src/aardt/datasets/cuads/CuadsDataset.py`.
+
+To extend `AERDataset` do the following:
+1. Create a new class as a subclass of AERDataset like so: 
+    ```python
+    from aardt.datasets import AERDataset
+    
+    class MyAwesomeDataset(AERDataset):
+        def __init__(self, signals):
+            super().__init__(signals)
+    ```
+    You should minimally provide a list of signal types to `super.__init__`. This is a list of signal types provided by this 
+    dataset, e.g.: `['ECG','EEG']`. Feel free to add whatever additional arguments you might need to support your implementation.
+
+
+2. Override `load_trials(self)` and `get_signal_metadata` methods from AERDataset. `load_trial(self)` is where all the 
+hard work of implementing a dataset is done... here, you will parse the dataset to produce individual `AERTrial` 
+instances. `get_signal_metadata(self,signal)` returns a map of metadata about the requested signal. Minimally this should include: 
+   * `n_channels`: the number of channels for this signal, and
+   * `sample_rate`: the sample rate in Hz for this signal
+    ```python
+    from aardt.datasets import AERDataset
+        
+    class MyAwesomeDataset(AERDataset):
+        def __init__(self, signals):
+            if signals is None:
+                signals = ['ECG']       # If not specified, let's load ECG signals from MyAwesomeDataset...
+                    
+            super().__init__(signals)
+        
+        @abc.abstractmethod
+        def load_trials(self):
+            """
+            Loads the AERTrials from the preloaded dataset into memory. This method should load all relevant trials from
+            the dataset. To avoid memory utilization issues, it is strongly recommended to defer loading signal data into
+            the AERTrial until that AERTrial's load_signal_data method is called.
+        
+            During load_trials, implementations should populate `self.trials`. Trial participant and media identifiers must
+            be numbered sequentially from 1 to N where N is the number of participants or media files in the dataset
+        
+            See subclasses for dataset-specific details.
+            :return:
+            """
+            mytrials = []  # actually load your trial data...
+            self.trials.extend( mytrials )
+        
+        @abc.abstractmethod
+        def get_signal_metadata(self, signal_type):
+            """
+            Returns a dict containing the requested signal's metadata. Mandatory keys include:
+            - 'signal_type' (the signal type)
+            - 'sample_rate' (in samples per second)
+            - 'n_channels' (the number of channels in the signal)
+        
+            See subclasses for implementation-specific keys that may also be present.
+        
+            :param signal_type: the type of signal for which to retrieve the metadata.
+            :return: a dict containing the requested signal's metadata
+            """
+            if signal_type not in self._signal_types:
+                raise ValueError('Signal type {} is not known in this AERTrial'.format(signal_type))
+        
+            if signal_type == 'ECG':
+                return {
+                    'n_channels': 2,
+                    'sample_rate': 256
+                }
+                
+            return {}
+    ```
+   
+
+   3. Create a new class as a subclass of AERTrial like so: 
+       ```python
+       from aardt.datasets import AERTrial
+    
+       class MyAwesomeDatasetTrial(AERTrial):
+           def __init__(self, dataset, participant_id, movie_id)):
+               super().__init__(dataset, participant_id, movie_id))
+    
+           @abc.abstractmethod
+           def load_signal_data(self, signal_type):
+               """
+               Loads and returns the requested signal as an (N+1)xM numpy array, where N is the number of channels, and M is
+               the number of samples in the signal. The row at N=0 represents the timestamp of each sample. The value is
+               given in epoch time if a real start time is available, otherwise it is in elapsed milliseconds with 0
+               representing the start of the sample.
+    
+               :param signal_type:
+               :return:
+               """
+               if signal_type not in self._signal_types:
+                   raise ValueError('Signal type {} is not known in this AERTrial'.format(signal_type))
+    
+               return np.empty(0)
+    
+           @abc.abstractmethod
+           def load_ground_truth(self):
+               """
+               Returns the ground truth label for this trial. For AER trials, this is the quadrant within the A/V space,
+               numbered 0 through 3 as follows:
+               - 0: High Arousal, High Valence
+               - 1: High Arousal, Low Valence
+               - 2: Low Arousal, Low Valence
+               - 3: Low Arousal, High Valence
+    
+               :return: The ground truth label for this trial
+               """
+               return 0
+    
+           @abc.abstractmethod
+           def get_signal_metadata(self, signal_type):
+               """
+               Returns a dict containing the requested signal's metadata. Mandatory keys include:
+               - 'signal_type' (the signal type)
+               - 'sample_rate' (in samples per second)
+               - 'n_channels' (the number of channels in the signal)
+    
+               See subclasses for implementation-specific keys that may also be present.
+    
+               :param signal_type: the type of signal for which to retrieve the metadata.
+               :return: a dict containing the requested signal's metadata
+               """
+               if signal_type not in self._signal_types:
+                   raise ValueError('Signal type {} is not known in this AERTrial'.format(signal_type))
+    
+               response = self.dataset.get_signal_metadata(signal_type)
+               response['duration'] = 60 # get the length of the signal data
+      
+               return response    
+       ```
+   
+       The AERTrial takes a reference to the dataset that created it, and the participant_id and media_id that this 
+       trial represents. It must implement `load_signal_data` and `load_ground_truth` as documented. It may optionally
+       override `get_signal_metadata` to augment the response from the dataset, for example, to include signal duration.
+
+There is more to it than this but this should be enough to get you started. See the `AERDataset` and `AERTrial` classes
+for method documentation, and then CUADS, ASCERTAIN and DREAMER examples for guidance.
 
 ## Contributing <a name="contributing"></a>
 We are happy to support you by accepting pull requests that make this library more broadly applicable, or by accepting

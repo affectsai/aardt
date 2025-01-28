@@ -19,7 +19,21 @@ import numpy as np
 
 
 class AERTrial(abc.ABC):
-    def __init__(self, dataset, participant_id, movie_id):
+    def __init__(self, dataset: AERDataset, participant_id: int, movie_id: int):
+        """
+        This class provides functionality to manage a dataset, associated participant
+        information, and movie data. It initializes various container attributes to
+        manage signal types, preprocessors, and data files correspondingly. These
+        attributes will facilitate efficient organization and retrieval of
+        participant-specific and movie-specific data for processing or analysis.
+
+        :param dataset: The dataset object that contains the data to be handled.
+        :param participant_id: The unique identifier for a participant within the dataset.
+        :param movie_id: The unique identifier for a movie associated with the data.
+        :type dataset: AERDataset
+        :type participant_id: int
+        :type movie_id: int
+        """
         self._dataset = dataset
         self._participant_id = participant_id
         self._signal_types = set()
@@ -27,14 +41,14 @@ class AERTrial(abc.ABC):
         self._signal_data_files = {}
         self._movie_id = movie_id
 
-    def load_preprocessed_signal_data(self, signal_type):
+    def load_preprocessed_signal_data(self, signal_type: str):
         signal_data = self.load_signal_data(signal_type)
         if signal_type in self.signal_preprocessors.keys():
             signal_data = self.signal_preprocessors[signal_type](signal_data)
         return signal_data
 
     @abc.abstractmethod
-    def load_signal_data(self, signal_type):
+    def load_signal_data(self, signal_type: str):
         """
         Loads and returns the requested signal as an (N+1)xM numpy array, where N is the number of channels, and M is
         the number of samples in the signal. The row at N=0 represents the timestamp of each sample. The value is
@@ -113,9 +127,25 @@ class AERTrial(abc.ABC):
         self._signal_preprocessors = signal_preprocessors
 
     @property
-    def movie_id(self):
-        return self._movie_id
+    def media_id(self):
+        """
+        The unique identifier for the media file, adjusted by the media file offset specified in the associated dataset.
+
+        :property:
+
+        :return: Returns the adjusted media file ID as an integer.
+        :rtype: int
+        """
+        return self._movie_id + self.dataset.media_file_offset
 
     @property
     def participant_id(self):
-        return self._participant_id
+        """
+        The unique identifier for the participant, adjusted by the participant offset specified in the associated dataset.
+
+        :property:
+
+        :return: Returns the adjusted participant ID as an integer.
+        :rtype: int
+        """
+        return self._participant_id + self.dataset.participant_offset

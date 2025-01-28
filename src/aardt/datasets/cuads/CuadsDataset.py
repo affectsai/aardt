@@ -34,6 +34,28 @@ CUADS_SAMPLE_RATE       = 256
 logger = logging.getLogger('CuadsDataset')
 logger.level = logging.DEBUG
 
+expected_classifications = {
+            'video_55': 2,
+            'video_79': 1,
+            'video_111': 3,
+            'video_73': 2,
+            'video_52': 4,
+            'video_146': 3,
+            'video_funny_f': 1,
+            'video_80': 1,
+            'video_cats_f': 1,
+            'video_138': 3,
+            'video_69': 2,
+            'video_dallas_f': 0,
+            'video_detroit_f': 0,
+            'video_53': 4,
+            'video_58': 4,
+            'video_30': 2,
+            'video_earworm_f': 2,
+            'video_newyork_f': 0,
+            'video_90': 1,
+            'video_107': 2
+        }
 
 class CuadsDataset(AERDataset):
     def __init__(self, dataset_path=None, participant_offset=0, mediafile_offset=0):
@@ -66,28 +88,7 @@ class CuadsDataset(AERDataset):
         self.dataset_path = Path(dataset_path)
         self._trial_cache = LRUCache(10)
 
-        self._expected_results = expected_label_map = {
-            'video_55': 2,
-            'video_79': 1,
-            'video_111': 3,
-            'video_73': 2,
-            'video_52': 4,
-            'video_146': 3,
-            'video_funny_f': 1,
-            'video_80': 1,
-            'video_cats_f': 1,
-            'video_138': 3,
-            'video_69': 2,
-            'video_dallas_f': 0,
-            'video_detroit_f': 0,
-            'video_53': 4,
-            'video_58': 4,
-            'video_30': 2,
-            'video_earworm_f': 2,
-            'video_newyork_f': 0,
-            'video_90': 1,
-            'video_107': 2
-        }
+        self._expected_results = {}
 
 
     def _preload_dataset(self):
@@ -124,7 +125,7 @@ class CuadsDataset(AERDataset):
 
             if cuads_participant_number not in self.participant_id_map:
                 self.participant_id_map[cuads_participant_number] = len(self.participant_id_map) + 1
-            dataset_participant_number = self.participant_id_map[cuads_participant_number] + self.participant_offset
+            dataset_participant_number = self.participant_id_map[cuads_participant_number] #+ self.participant_offset
 
 
             self.participant_ids.add(dataset_participant_number)
@@ -143,7 +144,7 @@ class CuadsDataset(AERDataset):
                 if movie_name not in self.media_index_map:
                     self.media_index_map[movie_name] = len(self.media_index_map) + 1
 
-                movie_id = self.media_index_map[movie_name] + self.media_file_offset
+                movie_id = self.media_index_map[movie_name] #+ self.media_file_offset
                 self.media_ids.add(movie_id)
                 self.media_index_to_name[movie_id] = movie_name
 
@@ -154,6 +155,9 @@ class CuadsDataset(AERDataset):
                                shared_cache=self._trial_cache)
                 trial.signal_preprocessors = self.signal_preprocessors
                 self.trials.append(trial)
+
+        for key, value in expected_classifications.items():
+            self._expected_results[self.media_index_map[key]] = value
 
     def get_signal_metadata(self, signal_type):
         if signal_type == 'ECG':
@@ -182,5 +186,5 @@ class CuadsDataset(AERDataset):
         return self.media_index_to_name
 
     @property
-    def expected_media_responses(self):
+    def _expected_media_responses(self):
         return self._expected_results

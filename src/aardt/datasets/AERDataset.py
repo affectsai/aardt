@@ -60,6 +60,25 @@ class AERDataset(metaclass=abc.ABCMeta):
     >>>     # do something with the preprocessed ecg signal.
     """
     def __init__(self, signals=None, participant_offset=0, mediafile_offset=0):
+        """
+        Represents a class that manages multiple signals and related data, such
+        as participant and media file offsets. This class is initialized
+        with optional signal data and offsets and provides internal storage
+        for signal processors, participant identifiers, media identifiers,
+        and trial information.
+
+        :param signals: A list of signal types used within the instance, e.g.: ['ECG', 'EEG'].
+        :param participant_offset: Offset applied to identifiers for participants.
+        :param mediafile_offset: Offset applied to identifiers for media files.
+
+        :ivar _signals: Internal storage for the list of signals.
+        :ivar _signal_preprocessors: Dictionary for mapping signal processors.
+        :ivar _participant_offset: Offset for participant identifiers.
+        :ivar _media_file_offset: Offset for media file identifiers.
+        :ivar _participant_ids: Set that tracks unique participant IDs.
+        :ivar _media_ids: Set that tracks unique media file IDs.
+        :ivar _all_trials: List that contains information about all trials.
+        """
         if signals is None:
             signals = []
         self._signals = signals
@@ -108,6 +127,13 @@ class AERDataset(metaclass=abc.ABCMeta):
         Abstract method invoked by self.preload() to perform the implementation-specific optimizations. See subclasses
         for more information about each AERDataset type's preload.
 
+        Some datasets may need extensive processing to make them more efficient to work with. You can use this method
+        to do that. For example, the DREAMER dataset is provided as a single, very large JSON data file. It would be
+        very inefficient to have to hold that in memory, and query through it for every signal in each trial. Instead,
+        DreamerDataset parses the JSON into a structured set of numpy files which it uses in load_trials instead.
+
+        Store your intermediates in the dataset's working folder defined by self.get_working_dir().
+
         :return:
         """
         pass
@@ -118,6 +144,11 @@ class AERDataset(metaclass=abc.ABCMeta):
         Loads the AERTrials from the preloaded dataset into memory. This method should load all relevant trials from
         the dataset. To avoid memory utilization issues, it is strongly recommended to defer loading signal data into
         the AERTrial until that AERTrial's load_signal_data method is called.
+
+        During load_trials, implementations should populate `self.trials`. Trial participant and media identifiers must
+        be numbered sequentially from 1 to N where N is the number of participants or media files in the dataset
+
+        The participant_ids and media_ids sets will be inferred from the trials loaded by this method.
 
         See subclasses for dataset-specific details.
         :return:
@@ -141,7 +172,7 @@ class AERDataset(metaclass=abc.ABCMeta):
             raise ValueError('Signal type {} is not known in this AERTrial'.format(signal_type))
 
         return {}
-    
+
     def get_working_dir(self):
         """
         Returns the working path for this AERDataset instance, given by:
@@ -161,6 +192,29 @@ class AERDataset(metaclass=abc.ABCMeta):
         path = Path(config['working_dir']) / Path(self.__class__.__name__)
         path.mkdir(parents=True, exist_ok=True)
         return path
+
+    def get_working_path(self, trial_participant_id=None, trial_media_id=None, signal_type=None, stimuli=True):
+        if trial_media_id is not None and trial_participant_id is None:
+            raise ValueError('participant_id must be given if media_id is specified.')
+
+        if signal_type is not None and trial_media_id is None:
+            raise ValueError('media_id must be given if signal_type is specified.')
+
+        if signal_type is not None and signal_type not in self.signals:
+            raise ValueError('Invalid signal type: {}'.format(signal_type))
+
+        participant_id = trial_participant_id - self.participant_offset
+        media_id = trial_media_id - self.media_file_offset
+
+        result = self.get_working_dir()
+        if participant_id is not None:
+            result /= f'Participant_{participant_id:02d}'
+            if media_id is not None:
+                result /= f'Media_{media_id:02d}'
+                if signal_type is not None:
+                    result /= f'{signal_type}_{"stimuli" if stimuli else "baseline"}.npy'
+
+        return result
 
     @property
     def signals(self):
@@ -239,7 +293,12 @@ class AERDataset(metaclass=abc.ABCMeta):
 
         :return:
         """
-        return self._media_ids
+        return set([trial.media_id for trial in self.trials])
+
+    # @media_ids.setter
+    # def media_ids(self, media_ids):
+    #     self._media_ids.clear()
+    #     self._media_ids.update(media_ids)
 
     @property
     def participant_ids(self):
@@ -253,7 +312,24 @@ class AERDataset(metaclass=abc.ABCMeta):
 
         :return:
         """
-        return self._participant_ids
+        return set([trial.participant_id for trial in self.trials])
+
+    @property
+    def expected_media_responses(self):
+        result = {}
+        for id in self._expected_media_responses.keys():
+            result[id+self.media_file_offset] = self._expected_media_responses[id]
+
+        return result
+
+    @property
+    def _expected_media_responses(self):
+        pass
+
+    # @participant_ids.setter
+    # def participant_ids(self, participant_ids):
+    #     self._participant_ids.clear()
+    #     self._participant_ids.update(participant_ids)
 
     @property
     def media_file_offset(self):
@@ -269,6 +345,10 @@ class AERDataset(metaclass=abc.ABCMeta):
         """
         return self._media_file_offset
 
+    @media_file_offset.setter
+    def media_file_offset(self, media_file_offset):
+        self._media_file_offset = media_file_offset
+
     @property
     def participant_offset(self):
         """
@@ -282,6 +362,11 @@ class AERDataset(metaclass=abc.ABCMeta):
         :return:
         """
         return self._participant_offset
+
+    @participant_offset.setter
+    def participant_offset(self, participant_offset):
+        self._participant_offset = participant_offset
+
 
     @property
     def signal_preprocessors(self):

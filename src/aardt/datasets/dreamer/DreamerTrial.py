@@ -39,17 +39,25 @@ class DreamerTrial(AERTrial):
         return q
 
     def load_signal_data(self, signal_type):
-        signal = np.load(self.dataset.get_working_path(self.participant_id, self.movie_id, signal_type))
-        time_steps = (np.arange(0, signal.shape[0]) * 1000 / 256).reshape(-1, 1)
-        result = np.append(time_steps, signal, axis=1)
+        if signal_type == 'ECG':
+            signal = np.load(self.dataset.get_working_path(self.participant_id, self.media_id, signal_type))
+            time_steps = (np.arange(0, signal.shape[0]) * 1000 / 256).reshape(-1, 1)
+            result = np.append(time_steps, signal, axis=1)
+            return result.transpose()
+        else:
+            raise ValueError('load_signal_data not implemented for signal type {}'.format(signal_type))
 
-        return result.transpose()
+    def get_signal_metadata(self, signal_type):
+        dataset_meta = self.dataset.get_signal_metadata(signal_type)
+        if signal_type == 'ECG':
+            dataset_meta['duration'] = self._ecg_signal_duration
+        return dataset_meta
 
     def load_ground_truth(self):
         participant_path = self.dataset.get_working_path(self.participant_id)
         ar=np.load(participant_path / Path('arousal.npy'))
         va=np.load(participant_path / Path('valence.npy'))
-        return self._to_quadrant(ar[self.movie_id-self.dataset.media_file_offset-1], va[self.movie_id-self.dataset.media_file_offset-1])
+        return self._to_quadrant(ar[self.media_id - self.dataset.media_file_offset - 1], va[self.media_id - self.dataset.media_file_offset - 1])
 
     def get_signal_metadata(self, signal_type):
         dataset_meta = self.dataset.get_signal_metadata(signal_type)

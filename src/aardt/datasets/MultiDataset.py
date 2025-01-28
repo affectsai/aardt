@@ -32,17 +32,26 @@ class MultiDataset(AERDataset):
         super().__init__(signals)
         self._datasets = datasets
         self._signal_metadata = {}
+        self._expected_results = {}
 
     def _preload_dataset(self):
         for dataset in self._datasets:
             dataset.preload()
 
     def load_trials(self):
+        num_participants = 0
+        num_mediafiles = 0
         for dataset in self._datasets:
+            dataset.participant_offset = num_participants
+            dataset.media_file_offset = num_mediafiles
             dataset.load_trials()
+            num_participants += len(dataset.participant_ids)
+            num_mediafiles += len(dataset.media_ids)
+
             self.trials.extend(dataset.trials)
             self.participant_ids.update(dataset.participant_ids)
             self.media_ids.update(dataset.media_ids)
+            self._expected_results.update(dataset.expected_media_responses)
 
     def set_signal_metadata(self, signal_type, metadata):
         self._signal_metadata[signal_type] = metadata
@@ -58,8 +67,5 @@ class MultiDataset(AERDataset):
         return map
 
     @property
-    def expected_media_responses(self):
-        map = {}
-        for dataset in self._datasets:
-            map.update(dataset.expected_media_responses)
-        return map
+    def _expected_media_responses(self):
+        return self._expected_results

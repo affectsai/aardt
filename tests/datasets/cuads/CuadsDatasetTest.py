@@ -23,8 +23,8 @@ from aardt.datasets.cuads import CuadsDataset
 from aardt.datasets.cuads.CuadsDataset import DEFAULT_DATASET_PATH, CUADS_NUM_MEDIA_FILES, \
     CUADS_NUM_PARTICIPANTS
 
-PARTICIPANT_OFFSET = 0
-MEDIAFILE_OFFSET = 0
+PARTICIPANT_OFFSET = 5
+MEDIAFILE_OFFSET = 5
 
 CUADS_NUM_PARTICIPANTS = 38
 CUADS_NUM_MEDIA_FILES = 20
@@ -88,6 +88,18 @@ class CuadsDatasetTest(unittest.TestCase):
         self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))
         self.assertEqual(0, len(split_1_participants.intersection(split_3_participants)))
         self.assertEqual(0, len(split_2_participants.intersection(split_3_participants)))
+
+    def test_participant_ids_are_sequential(self):
+        participant_ids = sorted(self.dataset.participant_ids)
+        for i in range(len(participant_ids)):
+            self.assertEqual(participant_ids[i], i + 1 + self.dataset.participant_offset)
+
+
+    def test_expected_responses(self):
+        media_ids = sorted(self.dataset.media_ids)
+        self.assertEqual(len(media_ids), len(self.dataset.expected_media_responses))
+        for media_id in media_ids:
+            self.assertIsNotNone(self.dataset.expected_media_responses[media_id])
 
 
 if __name__ == '__main__':

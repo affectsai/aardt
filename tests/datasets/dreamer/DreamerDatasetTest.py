@@ -41,12 +41,8 @@ class DreamerDatasetTest(unittest.TestCase):
         self.assertEqual(len(self.ecg_dataset.trials), DREAMER_NUM_MEDIA_FILES * DREAMER_NUM_PARTICIPANTS)
 
     def test_participant_id_offsets(self):
-        min_id = 9999999
-        max_id = -1
-
-        for participant_id in sorted(self.ecg_dataset.participant_ids):
-            min_id = min(min_id, participant_id)
-            max_id = max(max_id, participant_id)
+        min_id = min(self.ecg_dataset.participant_ids)
+        max_id = max(self.ecg_dataset.participant_ids)
 
         self.assertEqual(PARTICIPANT_OFFSET + 1, min_id)
         self.assertEqual(DREAMER_NUM_PARTICIPANTS, max_id - min_id + 1)
@@ -85,8 +81,8 @@ class DreamerDatasetTest(unittest.TestCase):
         Asserts that we can properly load an ECG signal from one of the dataset's trials.
         :return:
         """
-        trial = self.ecg_dataset.trials[random.randint(0, len(self.ecg_dataset.trials) - 1)]
-        self.assertEqual(trial.load_signal_data('ECG').shape[0], 3)
+        for trial in self.ecg_dataset.trials:
+            self.assertEqual(trial.load_signal_data('ECG').shape[0], 3)
 
     def test_splits(self):
         trial_splits = self.ecg_dataset.get_trial_splits([.7, .3])
@@ -124,6 +120,16 @@ class DreamerDatasetTest(unittest.TestCase):
         # Assert that no participant in the second split appears in the third split
         self.assertEqual(0, len(split_2_participants.intersection(split_3_participants)))
 
+    def test_participant_ids_are_sequential(self):
+        participant_ids = sorted(self.ecg_dataset.participant_ids)
+        for i in range(len(participant_ids)):
+            self.assertEqual(participant_ids[i], i + 1 + self.ecg_dataset.participant_offset)
+
+    def test_expected_responses(self):
+        media_ids = sorted(self.ecg_dataset.media_ids)
+        self.assertEqual(len(media_ids), len(self.ecg_dataset.expected_media_responses))
+        for media_id in media_ids:
+            self.assertIsNotNone(self.ecg_dataset.expected_media_responses[media_id])
 
 if __name__ == '__main__':
     unittest.main()
