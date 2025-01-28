@@ -18,6 +18,15 @@ classifiers = [
     "License :: Free for non-commercial use",
     "Operating System :: OS Independent",
 ]
+dependencies = [
+    "ijson",
+    "neurokit2",
+    "numpy",
+    "scikit_learn",
+    "scipy",
+    "tensorboard>=2.18.0",
+    "tensorflow>=2.18.0"
+]
 
 [project.urls]
 Homepage = "https://github.com/affectsai/aardt"
