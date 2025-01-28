@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ardt"
-version = "0.1.3"
+version = "0.1.4"
 authors = [
   { name="Timothy C. Sweeney-Fanelli", email="tim@affects.ai" },
 ]
@@ -32,6 +32,6 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/affectsai/aardt"
-Issues = "https://github.com/affectsai/aardt/issues"
+Homepage = "https://github.com/affectsai/ardt"
+Issues = "https://github.com/affectsai/ardt/issues"
 
