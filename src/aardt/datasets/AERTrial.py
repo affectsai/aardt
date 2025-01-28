@@ -17,6 +17,8 @@ import abc
 
 import numpy as np
 
+from aardt.datasets import AERDataset
+
 
 class AERTrial(abc.ABC):
     def __init__(self, dataset: AERDataset, participant_id: int, movie_id: int):
