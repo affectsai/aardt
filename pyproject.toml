@@ -8,16 +8,18 @@ version = "0.1.0"
 authors = [
   { name="Timothy C. Sweeney-Fanelli", email="tim@affects.ai" },
 ]
+maintainers = [
+  { name="Timothy C. Sweeney-Fanelli", email="tim@affects.ai" },
+]
 description = "An extensible utility package for working with AER Datasets such as ASCERTAIN, CUADS, DREAMER and more"
 readme = "README.md"
-requires-python = ">=3.11"
-license = {file = "LICENSE"}
+license = "CC-BY-NC-SA-4.0"
+license-files = ["LICEN[CS]E*"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",
-    "License :: Free for non-commercial use",
-    "Operating System :: OS Independent",
 ]
+requires-python = ">= 3.10"
 dependencies = [
     "ijson",
     "neurokit2",
@@ -31,3 +33,4 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/affectsai/aardt"
 Issues = "https://github.com/affectsai/aardt/issues"
+
