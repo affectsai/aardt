@@ -80,6 +80,8 @@ and manipulation.
 Much of this is covered in this README. For additional assistance you can open an issue on our GitHub, or reach out to
 the authors directly.
 
+You will also find comprehensive examples in this the [CUADS Data Quality Notebook](https://github.com/affectsai/cuads_dataset/blob/ardt/CUADS_Data_Quality.ipynb). 
+
 ## Intended Use and License
 <a name="license"></a>
 This library is intended for use by only by academic researchers to facilitate advancements in emotion research. It is 
