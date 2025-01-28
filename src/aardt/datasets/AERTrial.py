@@ -141,6 +141,23 @@ class AERTrial(abc.ABC):
         return self._movie_id + self.dataset.media_file_offset
 
     @property
+    def media_name(self):
+        '''
+        Some datasets may use media names e.g. "funny_video.mp4" instead of media ID numbers, and generate the media
+        ID numbers during load_dataset. In this situations it may be useful to be able to access the original media name.
+
+        This method will do that. If the dataset does not provide a media_name map in media_names_by_movie_id, then
+        this method will just return self.media_id
+        :return:
+        '''
+        name = self.dataset.get_media_name_by_movie_id(self.media_id-self.dataset.media_file_offset)
+
+        if name is not None:
+            return name
+
+        return self.media_id
+
+    @property
     def participant_id(self):
         """
         The unique identifier for the participant, adjusted by the participant offset specified in the associated dataset.
@@ -151,3 +168,8 @@ class AERTrial(abc.ABC):
         :rtype: int
         """
         return self._participant_id + self.dataset.participant_offset
+
+    @property
+    def expected_response(self):
+        expected_responses = self.dataset.expected_media_responses
+        return expected_responses[self.media_id-self.dataset.media_file_offset]

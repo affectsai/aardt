@@ -55,6 +55,9 @@ class DreamerTrial(AERTrial):
 
     def load_ground_truth(self):
         participant_path = self.dataset.get_working_path(self.participant_id)
+        if participant_path is None:
+            return 0
+
         ar=np.load(participant_path / Path('arousal.npy'))
         va=np.load(participant_path / Path('valence.npy'))
         return self._to_quadrant(ar[self.media_id - self.dataset.media_file_offset - 1], va[self.media_id - self.dataset.media_file_offset - 1])

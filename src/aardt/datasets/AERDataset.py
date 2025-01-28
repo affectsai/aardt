@@ -203,8 +203,8 @@ class AERDataset(metaclass=abc.ABCMeta):
         if signal_type is not None and signal_type not in self.signals:
             raise ValueError('Invalid signal type: {}'.format(signal_type))
 
-        participant_id = trial_participant_id - self.participant_offset
-        media_id = trial_media_id - self.media_file_offset
+        participant_id = trial_participant_id - self.participant_offset if trial_participant_id is not None else None
+        media_id = trial_media_id - self.media_file_offset if trial_media_id is not None else None
 
         result = self.get_working_dir()
         if participant_id is not None:
@@ -314,16 +314,18 @@ class AERDataset(metaclass=abc.ABCMeta):
         """
         return set([trial.participant_id for trial in self.trials])
 
+    # @property
+    # def expected_media_responses(self):
+    #     result = {}
+    #
+    #     for id in self._expected_media_responses.keys():
+    #         result[id+self.media_file_offset] = self._expected_media_responses[id]
+    #
+    #     return result
+
     @property
+    @abc.abstractmethod
     def expected_media_responses(self):
-        result = {}
-        for id in self._expected_media_responses.keys():
-            result[id+self.media_file_offset] = self._expected_media_responses[id]
-
-        return result
-
-    @property
-    def _expected_media_responses(self):
         pass
 
     # @participant_ids.setter
@@ -349,6 +351,10 @@ class AERDataset(metaclass=abc.ABCMeta):
     def media_file_offset(self, media_file_offset):
         self._media_file_offset = media_file_offset
 
+    @abc.abstractmethod
+    def get_media_name_by_movie_id(self, movie_id):
+        pass
+
     @property
     def participant_offset(self):
         """
@@ -366,7 +372,6 @@ class AERDataset(metaclass=abc.ABCMeta):
     @participant_offset.setter
     def participant_offset(self, participant_offset):
         self._participant_offset = participant_offset
-
 
     @property
     def signal_preprocessors(self):

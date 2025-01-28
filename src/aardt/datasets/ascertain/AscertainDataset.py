@@ -200,9 +200,8 @@ class AscertainDataset(AERDataset):
             }
 
     @property
-    def media_names_by_movie_id(self):
-        return self.media_index_to_name
-
-    @property
-    def _expected_media_responses(self):
+    def expected_media_responses(self):
         return self._expected_results
+
+    def get_media_name_by_movie_id(self, movie_id):
+        return None
