@@ -65,3 +65,7 @@ class DreamerTrial(AERTrial):
     def get_signal_metadata(self, signal_type):
         dataset_meta = self.dataset.get_signal_metadata(signal_type)
         return dataset_meta
+
+    @property
+    def participant_response(self):
+        self.load_ground_truth()

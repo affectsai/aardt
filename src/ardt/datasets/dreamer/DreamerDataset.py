@@ -21,6 +21,8 @@ import numpy as np
 
 from ardt import config
 from ardt.datasets import AERDataset
+from ardt.datasets.cuads.CuadsDataset import default_signal_metadata
+
 from .DreamerTrial import DreamerTrial
 
 CONFIG = config['datasets']['dreamer']
@@ -55,6 +57,12 @@ expected_classifications = {
             18: 2,  # The Departed
         }
 
+default_signal_metadata = { 'ECG': {
+                'sample_rate': 256,
+                'n_channels': 2,
+            }
+}
+
 class DreamerDataset(AERDataset):
     def __init__(self, dataset_path=None, signals=None, participant_offset=0, mediafile_offset=0,
                  dataset_fname=DEFAULT_DREAMER_FILENAME):
@@ -77,7 +85,12 @@ class DreamerDataset(AERDataset):
                     raise ValueError(
                         f'{signal} signal does not exist in DREAMER. Please correct and try again.')
 
-        super().__init__(signals, participant_offset, mediafile_offset)
+        super().__init__(signals=signals,
+                         participant_offset=participant_offset,
+                         mediafile_offset=mediafile_offset,
+                         signal_metadata=default_signal_metadata,
+                         expected_responses=expected_classifications)
+
 
         if dataset_path is None:
             dataset_path = CONFIG.get('path')
@@ -93,7 +106,6 @@ class DreamerDataset(AERDataset):
             raise ValueError('Path to DREAMER dataset does not exist: {}'.format(self._dataset_file.resolve()))
 
         self.media_index_to_name = {}           # Maps media index back to name
-        self._expected_results = expected_classifications
 
     def get_signal_metadata(self, signal_type):
         return {}
@@ -135,17 +147,6 @@ class DreamerDataset(AERDataset):
                     trial.signal_data_files[signal] = self.get_working_path(trial.participant_id, trial.media_id, signal)
                 self.trials.append(trial)
 
-    def get_signal_metadata(self, signal_type):
-        if signal_type == 'ECG':
-            return {
-                'signal_type': signal_type,
-                'sample_rate': 256,
-                'n_channels': 2,
-            }
-
-    @property
-    def expected_media_responses(self):
-        return self._expected_results
-
     def get_media_name_by_movie_id(self, movie_id):
         return None
+

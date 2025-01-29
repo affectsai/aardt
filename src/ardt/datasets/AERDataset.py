@@ -59,7 +59,7 @@ class AERDataset(metaclass=abc.ABCMeta):
     >>>     preprocessed_ecg = training_trial.load_signal_data('ECG')
     >>>     # do something with the preprocessed ecg signal.
     """
-    def __init__(self, signals=None, participant_offset=0, mediafile_offset=0):
+    def __init__(self, signals=None, participant_offset=0, mediafile_offset=0, signal_metadata=None, expected_responses=None):
         """
         Represents a class that manages multiple signals and related data, such
         as participant and media file offsets. This class is initialized
@@ -81,6 +81,11 @@ class AERDataset(metaclass=abc.ABCMeta):
         """
         if signals is None:
             signals = []
+        if signal_metadata is None:
+            signal_metadata = {}
+        if expected_responses is None:
+            expected_responses = {}
+
         self._signals = signals
         self._signal_preprocessors = {}
         self._participant_offset = participant_offset
@@ -88,6 +93,8 @@ class AERDataset(metaclass=abc.ABCMeta):
         self._participant_ids = set()
         self._media_ids = set()
         self._all_trials = []
+        self._signal_metadata = signal_metadata
+        self._expected_responses = expected_responses
 
     def preload(self):
         """
@@ -156,22 +163,13 @@ class AERDataset(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def get_signal_metadata(self, signal_type):
-        """
-        Returns a dict containing the requested signal's metadata. Mandatory keys include:
-        - 'signal_type' (the signal type)
-        - 'sample_rate' (in samples per second)
-        - 'n_channels' (the number of channels in the signal)
+    def get_media_name_by_movie_id(self, movie_id):
+        pass
 
-        See subclasses for implementation-specific keys that may also be present.
-
-        :param signal_type: the type of signal for which to retrieve the metadata.
-        :return: a dict containing the requested signal's metadata
-        """
-        if signal_type not in self._signal_types:
-            raise ValueError('Signal type {} is not known in this AERTrial'.format(signal_type))
-
-        return {}
+    @property
+    @abc.abstractmethod
+    def expected_media_responses(self):
+        pass
 
     def get_working_dir(self):
         """
@@ -281,6 +279,14 @@ class AERDataset(metaclass=abc.ABCMeta):
 
         return trial_splits
 
+    def get_dataset_splits(self, splits=None):
+        split_trials = self.get_trial_splits(splits)
+        return [SplitWrapperDataset(t,
+                                    self.participant_offset,
+                                    self.media_file_offset,
+                                    self._signal_metadata,
+                                    self._expected_responses) for t in split_trials]
+
     @property
     def media_ids(self):
         """
@@ -294,11 +300,6 @@ class AERDataset(metaclass=abc.ABCMeta):
         :return:
         """
         return set([trial.media_id for trial in self.trials])
-
-    # @media_ids.setter
-    # def media_ids(self, media_ids):
-    #     self._media_ids.clear()
-    #     self._media_ids.update(media_ids)
 
     @property
     def participant_ids(self):
@@ -314,24 +315,9 @@ class AERDataset(metaclass=abc.ABCMeta):
         """
         return set([trial.participant_id for trial in self.trials])
 
-    # @property
-    # def expected_media_responses(self):
-    #     result = {}
-    #
-    #     for id in self._expected_media_responses.keys():
-    #         result[id+self.media_file_offset] = self._expected_media_responses[id]
-    #
-    #     return result
-
     @property
-    @abc.abstractmethod
     def expected_media_responses(self):
-        pass
-
-    # @participant_ids.setter
-    # def participant_ids(self, participant_ids):
-    #     self._participant_ids.clear()
-    #     self._participant_ids.update(participant_ids)
+        return self._expected_responses
 
     @property
     def media_file_offset(self):
@@ -350,10 +336,6 @@ class AERDataset(metaclass=abc.ABCMeta):
     @media_file_offset.setter
     def media_file_offset(self, media_file_offset):
         self._media_file_offset = media_file_offset
-
-    @abc.abstractmethod
-    def get_media_name_by_movie_id(self, movie_id):
-        pass
 
     @property
     def participant_offset(self):
@@ -385,3 +367,49 @@ class AERDataset(metaclass=abc.ABCMeta):
         :return:
         """
         return self._signal_preprocessors
+
+    def get_signal_metadata(self, signal_type):
+        """
+        Returns a dict containing the requested signal's metadata. Mandatory keys include:
+        - 'sample_rate' (in samples per second)
+        - 'n_channels' (the number of channels in the signal)
+
+        See subclasses for implementation-specific keys that may also be present.
+
+        :param signal_type: the type of signal for which to retrieve the metadata.
+        :return: a dict containing the requested signal's metadata
+        """
+        if signal_type not in self._signal_metadata:
+            raise ValueError('get_signal_metadata not implemented for signal type {}'.format(signal_type))
+        return self._signal_metadata[signal_type]
+
+    def set_signal_metadata(self, signal_type, metadata):
+        if signal_type not in self._signal_metadata:
+            self._signal_metadata[signal_type] = metadata
+        else:
+            self._signal_metadata[signal_type].update(metadata)
+
+class SplitWrapperDataset(AERDataset):
+    """
+    This is a wrapper class used to create a meta-dataset around a set of trials for a split...
+    """
+    def __init__(self, trials, participant_offset=0, mediafile_offset=0, signal_metadata=None, expected_responses=None):
+        super().__init__(participant_offset=participant_offset,
+                       mediafile_offset=mediafile_offset,
+                       signal_metadata=signal_metadata,
+                       expected_responses=expected_responses)
+
+        self._all_trials = trials
+        self._media_names_by_id = {}
+
+        for trial in self._all_trials:
+            self._media_names_by_id[trial.media_id-mediafile_offset] = trial.media_name
+
+    def _preload_dataset(self):
+        pass
+
+    def load_trials(self):
+        pass
+
+    def get_media_name_by_movie_id(self, movie_id):
+        return self._media_names_by_id[movie_id]

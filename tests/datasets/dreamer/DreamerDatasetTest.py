@@ -25,10 +25,10 @@ MEDIAFILE_OFFSET = 20
 
 class DreamerDatasetTest(unittest.TestCase):
     def setUp(self):
-        self.ecg_dataset = DreamerDataset(DEFAULT_DREAMER_PATH, signals=['ECG'], participant_offset=PARTICIPANT_OFFSET,
+        self.dataset = DreamerDataset(DEFAULT_DREAMER_PATH, signals=['ECG'], participant_offset=PARTICIPANT_OFFSET,
                                           mediafile_offset=MEDIAFILE_OFFSET)
-        self.ecg_dataset.preload()
-        self.ecg_dataset.load_trials()
+        self.dataset.preload()
+        self.dataset.load_trials()
         self.dataset_path = (DEFAULT_DREAMER_PATH / DEFAULT_DREAMER_FILENAME).resolve()
 
     def test_dataset_load(self):
@@ -36,13 +36,13 @@ class DreamerDatasetTest(unittest.TestCase):
         Asserts that the ASCERTAIN dataset loads the expected number of participants, movie clips, and trials.
         :return:
         """
-        self.assertEqual(len(self.ecg_dataset.participant_ids), DREAMER_NUM_PARTICIPANTS)
-        self.assertEqual(len(self.ecg_dataset.media_ids), DREAMER_NUM_MEDIA_FILES)
-        self.assertEqual(len(self.ecg_dataset.trials), DREAMER_NUM_MEDIA_FILES * DREAMER_NUM_PARTICIPANTS)
+        self.assertEqual(len(self.dataset.participant_ids), DREAMER_NUM_PARTICIPANTS)
+        self.assertEqual(len(self.dataset.media_ids), DREAMER_NUM_MEDIA_FILES)
+        self.assertEqual(len(self.dataset.trials), DREAMER_NUM_MEDIA_FILES * DREAMER_NUM_PARTICIPANTS)
 
     def test_participant_id_offsets(self):
-        min_id = min(self.ecg_dataset.participant_ids)
-        max_id = max(self.ecg_dataset.participant_ids)
+        min_id = min(self.dataset.participant_ids)
+        max_id = max(self.dataset.participant_ids)
 
         self.assertEqual(PARTICIPANT_OFFSET + 1, min_id)
         self.assertEqual(DREAMER_NUM_PARTICIPANTS, max_id - min_id + 1)
@@ -51,7 +51,7 @@ class DreamerDatasetTest(unittest.TestCase):
         min_id = 9999999
         max_id = -1
 
-        for media_id in sorted(self.ecg_dataset.media_ids):
+        for media_id in sorted(self.dataset.media_ids):
             min_id = min(min_id, media_id)
             max_id = max(max_id, media_id)
 
@@ -59,7 +59,7 @@ class DreamerDatasetTest(unittest.TestCase):
         self.assertEqual(DREAMER_NUM_MEDIA_FILES, max_id - min_id + 1)
 
     def test_dataset_preload_files_exist(self):
-        for trial in self.ecg_dataset.trials:
+        for trial in self.dataset.trials:
             for signal_type in trial.signal_types:
                 self.assertTrue(trial.signal_data_files[signal_type].exists(),
                                 f'Signal data file {trial.signal_data_files[signal_type]} does not exist')
@@ -81,11 +81,11 @@ class DreamerDatasetTest(unittest.TestCase):
         Asserts that we can properly load an ECG signal from one of the dataset's trials.
         :return:
         """
-        for trial in self.ecg_dataset.trials:
+        for trial in self.dataset.trials:
             self.assertEqual(trial.load_signal_data('ECG').shape[0], 3)
 
     def test_splits(self):
-        trial_splits = self.ecg_dataset.get_trial_splits([.7, .3])
+        trial_splits = self.dataset.get_trial_splits([.7, .3])
         split_1_participants = set([trial.participant_id for trial in trial_splits[0]])
         split_2_participants = set([trial.participant_id for trial in trial_splits[1]])
 
@@ -93,13 +93,13 @@ class DreamerDatasetTest(unittest.TestCase):
         self.assertEqual(len(trial_splits), 2)
 
         # Assert that the length of the splits sums to the total number of trials in the dataset.
-        self.assertEqual(len(self.ecg_dataset.trials), len(trial_splits[0]) + len(trial_splits[1]))
+        self.assertEqual(len(self.dataset.trials), len(trial_splits[0]) + len(trial_splits[1]))
 
         # Assert that no participant in the first split appears in the second split
         self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))
 
     def test_three_splits(self):
-        trial_splits = self.ecg_dataset.get_trial_splits([.7, .15, .15])
+        trial_splits = self.dataset.get_trial_splits([.7, .15, .15])
         split_1_participants = set([trial.participant_id for trial in trial_splits[0]])
         split_2_participants = set([trial.participant_id for trial in trial_splits[1]])
         split_3_participants = set([trial.participant_id for trial in trial_splits[2]])
@@ -109,7 +109,7 @@ class DreamerDatasetTest(unittest.TestCase):
 
         # Assert that the length of the splits sums to the total number of trials in the dataset.
         self.assertEqual(len(trial_splits[0]) + len(trial_splits[1]) + len(trial_splits[2]),
-                         len(self.ecg_dataset.trials))
+                         len(self.dataset.trials))
 
         # Assert that no participant in the first split appears in the second split
         self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))
@@ -121,15 +121,16 @@ class DreamerDatasetTest(unittest.TestCase):
         self.assertEqual(0, len(split_2_participants.intersection(split_3_participants)))
 
     def test_participant_ids_are_sequential(self):
-        participant_ids = sorted(self.ecg_dataset.participant_ids)
+        participant_ids = sorted(self.dataset.participant_ids)
         for i in range(len(participant_ids)):
-            self.assertEqual(participant_ids[i], i + 1 + self.ecg_dataset.participant_offset)
+            self.assertEqual(participant_ids[i], i + 1 + self.dataset.participant_offset)
 
     def test_expected_responses(self):
-        media_ids = sorted(self.ecg_dataset.media_ids)
-        self.assertEqual(len(media_ids), len(self.ecg_dataset.expected_media_responses))
-        for media_id in media_ids:
-            self.assertIsNotNone(self.ecg_dataset.expected_media_responses[media_id])
+        media_ids = sorted(self.dataset.media_ids)
+        self.assertEqual(len(media_ids), len(self.dataset.expected_media_responses))
+        for trial in self.dataset.trials:
+            self.assertIsNotNone(trial.expected_response)
+
 
 if __name__ == '__main__':
     unittest.main()

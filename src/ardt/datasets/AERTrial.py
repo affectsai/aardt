@@ -86,7 +86,7 @@ class AERTrial(abc.ABC):
 
         :return: The ground truth label for this trial
         """
-        return 0
+        pass
 
     @abc.abstractmethod
     def get_signal_metadata(self, signal_type):
@@ -164,7 +164,7 @@ class AERTrial(abc.ABC):
         if name is not None:
             return name
 
-        return self.media_id
+        return self.media_id - self.dataset.media_file_offset
 
     @property
     def participant_id(self):
@@ -179,11 +179,12 @@ class AERTrial(abc.ABC):
         return self._participant_id + self.dataset.participant_offset
 
     @property
+    @abc.abstractmethod
     def participant_response(self):
-        self.load_ground_truth()
+        pass
 
     @property
     def expected_response(self):
         expected_responses = self.dataset.expected_media_responses
-        return expected_responses[self.media_id-self.dataset.media_file_offset]
+        return expected_responses[self.media_name]
 

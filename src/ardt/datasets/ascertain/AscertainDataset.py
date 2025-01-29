@@ -89,6 +89,12 @@ expected_classifications = {
             32: 2,  # Alien
         }
 
+default_signal_metadata = {'ECG': {
+                'sample_rate': 256,
+                'n_channels': 2,
+            }
+}
+
 class AscertainDataset(AERDataset):
     def __init__(self, ascertain_path=None, signals=None, participant_offset=0, mediafile_offset=0):
         """
@@ -103,7 +109,11 @@ class AscertainDataset(AERDataset):
         :param mediafile_offset: Constant value added to each media identifier within this dataset. For example, if
         mediafile_offset is 12, then Movie 1 from this dataset's raw data will be reported as Media ID 13.
         """
-        super().__init__(signals, participant_offset, mediafile_offset)
+        super().__init__(signals=signals,
+                         participant_offset=participant_offset,
+                         mediafile_offset=mediafile_offset,
+                         signal_metadata=default_signal_metadata,
+                         expected_responses=expected_classifications)
 
         if ascertain_path is None:
             ascertain_path = CONFIG.get('path')
@@ -133,7 +143,6 @@ class AscertainDataset(AERDataset):
                 if p.is_dir():
                     self.signals.append(str(p.name).replace("Data", ""))
 
-        self._expected_results = expected_classifications
 
     def _preload_dataset(self):
         pass
@@ -191,17 +200,7 @@ class AscertainDataset(AERDataset):
                 trial.signal_preprocessors = self.signal_preprocessors
                 self.trials.append(trial)
 
-    def get_signal_metadata(self, signal_type):
-        if signal_type == 'ECG':
-            return {
-                'signal_type': signal_type,
-                'sample_rate': 256,
-                'n_channels': 2,
-            }
-
-    @property
-    def expected_media_responses(self):
-        return self._expected_results
-
     def get_media_name_by_movie_id(self, movie_id):
         return None
+
+

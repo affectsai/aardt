@@ -31,8 +31,6 @@ class MultiDataset(AERDataset):
     def __init__(self, datasets, signals=None):
         super().__init__(signals)
         self._datasets = datasets
-        self._signal_metadata = {}
-        self._expected_results = {}
         self._media_names_by_movie_id = {}
 
     def _preload_dataset(self):
@@ -53,14 +51,6 @@ class MultiDataset(AERDataset):
             self.participant_ids.update(dataset.participant_ids)
             self.media_ids.update(dataset.media_ids)
 
-            for id,value in dataset.expected_media_responses.items():
-                self._expected_results[id+dataset.participant_offset] = value
-
-    def set_signal_metadata(self, signal_type, metadata):
-        self._signal_metadata[signal_type] = metadata
-
-    def get_signal_metadata(self, signal_type):
-        return self._signal_metadata[signal_type]
 
     @property
     def media_names_by_movie_id(self):
@@ -69,9 +59,7 @@ class MultiDataset(AERDataset):
             map.update(dataset.media_names_by_movie_id)
         return map
 
-    @property
-    def expected_media_responses(self):
-        return self._expected_results
-
     def get_media_name_by_movie_id(self, movie_id):
         pass
+
+

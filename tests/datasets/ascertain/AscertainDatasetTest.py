@@ -29,10 +29,10 @@ MEDIAFILE_OFFSET = 20
 
 class AscertainDatasetTest(unittest.TestCase):
     def setUp(self):
-        self.ecg_dataset = AscertainDataset(DEFAULT_ASCERTAIN_PATH, signals=['ECG'],
+        self.dataset = AscertainDataset(DEFAULT_ASCERTAIN_PATH, signals=['ECG'],
                                             participant_offset=PARTICIPANT_OFFSET, mediafile_offset=MEDIAFILE_OFFSET)
-        self.ecg_dataset.preload()
-        self.ecg_dataset.load_trials()
+        self.dataset.preload()
+        self.dataset.load_trials()
         self.dataset_path = (DEFAULT_ASCERTAIN_PATH / ASCERTAIN_RAW_FOLDER).resolve()
 
     def test_ascertain_paths(self):
@@ -57,27 +57,27 @@ class AscertainDatasetTest(unittest.TestCase):
         Asserts that the ASCERTAIN dataset loads the expected number of participants, movie clips, and trials.
         :return:
         """
-        self.assertEqual(len(self.ecg_dataset.participant_ids), ASCERTAIN_NUM_PARTICIPANTS)
-        self.assertEqual(len(self.ecg_dataset.media_ids), ASCERTAIN_NUM_MEDIA_FILES)
-        self.assertEqual(len(self.ecg_dataset.trials), ASCERTAIN_NUM_MEDIA_FILES * ASCERTAIN_NUM_PARTICIPANTS)
+        self.assertEqual(len(self.dataset.participant_ids), ASCERTAIN_NUM_PARTICIPANTS)
+        self.assertEqual(len(self.dataset.media_ids), ASCERTAIN_NUM_MEDIA_FILES)
+        self.assertEqual(len(self.dataset.trials), ASCERTAIN_NUM_MEDIA_FILES * ASCERTAIN_NUM_PARTICIPANTS)
 
     def test_ascertain_path_limit_signals(self):
         """
         Asserts that the ASCERTAIN data set class works properly on a restricted list of signal types, using the
-        ecg_dataset created in setUp
+        dataset created in setUp
         :return:
         """
         self.assertTrue(True, 'We made it!')
-        for signal in self.ecg_dataset.signals:
+        for signal in self.dataset.signals:
             self.assertTrue(os.path.isdir(os.path.join(DEFAULT_ASCERTAIN_PATH, ASCERTAIN_RAW_FOLDER, f'{signal}Data')))
 
         for path in np.array(sorted(os.listdir(self.dataset_path))):
             if os.path.isdir(os.path.join(DEFAULT_ASCERTAIN_PATH, ASCERTAIN_RAW_FOLDER, path)):
                 if path.endswith('Data') and not path.startswith('ECG'):
-                    self.assertNotIn(path.replace("Data", ""), self.ecg_dataset.signals)
+                    self.assertNotIn(path.replace("Data", ""), self.dataset.signals)
 
-        self.assertEqual(len(self.ecg_dataset.participant_ids), ASCERTAIN_NUM_PARTICIPANTS)
-        self.assertEqual(len(self.ecg_dataset.media_ids), ASCERTAIN_NUM_MEDIA_FILES)
+        self.assertEqual(len(self.dataset.participant_ids), ASCERTAIN_NUM_PARTICIPANTS)
+        self.assertEqual(len(self.dataset.media_ids), ASCERTAIN_NUM_MEDIA_FILES)
 
     @staticmethod
     def bad_signal():
@@ -98,7 +98,7 @@ class AscertainDatasetTest(unittest.TestCase):
         """
         num_trials = 0
         num_data_files = 0
-        for trial in self.ecg_dataset.trials:
+        for trial in self.dataset.trials:
             num_trials += 1
             for data_file in trial.signal_data_files.values():
                 num_data_files += 1
@@ -110,12 +110,12 @@ class AscertainDatasetTest(unittest.TestCase):
         Asserts that we can properly load an ECG signal from one of the dataset's trials.
         :return:
         """
-        trial = self.ecg_dataset.trials[random.randint(0, len(self.ecg_dataset.trials) - 1)]
+        trial = self.dataset.trials[random.randint(0, len(self.dataset.trials) - 1)]
         self.assertEqual(trial.load_signal_data('ECG').shape[0], 3)
 
     def test_participant_id_offsets(self):
-        min_id = min(self.ecg_dataset.participant_ids)
-        max_id = max(self.ecg_dataset.participant_ids)
+        min_id = min(self.dataset.participant_ids)
+        max_id = max(self.dataset.participant_ids)
 
         self.assertEqual(PARTICIPANT_OFFSET + 1, min_id)
         self.assertEqual(ASCERTAIN_NUM_PARTICIPANTS, max_id - min_id + 1)
@@ -124,7 +124,7 @@ class AscertainDatasetTest(unittest.TestCase):
         min_id = 9999999
         max_id = -1
 
-        for media_id in sorted(self.ecg_dataset.media_ids):
+        for media_id in sorted(self.dataset.media_ids):
             min_id = min(min_id, media_id)
             max_id = max(max_id, media_id)
 
@@ -132,42 +132,66 @@ class AscertainDatasetTest(unittest.TestCase):
         self.assertEqual(ASCERTAIN_NUM_MEDIA_FILES, max_id - min_id + 1)
 
     def test_splits(self):
-        trial_splits = self.ecg_dataset.get_trial_splits([.7, .3])
+        trial_splits = self.dataset.get_trial_splits([.7, .3])
         split_1_participants = set([x.participant_id for x in trial_splits[0]])
         split_2_participants = set([x.participant_id for x in trial_splits[1]])
 
         self.assertEqual(len(trial_splits), 2)
-        self.assertEqual(len(trial_splits[0]) + len(trial_splits[1]), len(self.ecg_dataset.trials))
+        self.assertEqual(len(trial_splits[0]) + len(trial_splits[1]), len(self.dataset.trials))
         self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))
 
     def test_three_splits(self):
-        trial_splits = self.ecg_dataset.get_trial_splits([.7, .15, .15])
+        trial_splits = self.dataset.get_trial_splits([.7, .15, .15])
         split_1_participants = set([x.participant_id for x in trial_splits[0]])
         split_2_participants = set([x.participant_id for x in trial_splits[1]])
         split_3_participants = set([x.participant_id for x in trial_splits[2]])
 
         self.assertEqual(len(trial_splits), 3)
         self.assertEqual(len(trial_splits[0]) + len(trial_splits[1]) + len(trial_splits[2]),
-                         len(self.ecg_dataset.trials))
+                         len(self.dataset.trials))
         self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))
         self.assertEqual(0, len(split_1_participants.intersection(split_3_participants)))
         self.assertEqual(0, len(split_2_participants.intersection(split_3_participants)))
 
+
+    def test_split_datasets(self):
+        datasets = self.dataset.get_dataset_splits([.7, .3])
+        split_1_participants = set([x.participant_id for x in datasets[0].trials])
+        split_2_participants = set([x.participant_id for x in datasets[1].trials])
+
+        self.assertEqual(len(datasets), 2)
+        self.assertEqual(len(datasets[0].trials) + len(datasets[1].trials), len(self.dataset.trials))
+        self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))
+
+    def test_three_split_datasets(self):
+        datasets = self.dataset.get_dataset_splits([.7, .15, .15])
+        split_1_participants = set([x.participant_id for x in datasets[0].trials])
+        split_2_participants = set([x.participant_id for x in datasets[1].trials])
+        split_3_participants = set([x.participant_id for x in datasets[2].trials])
+
+        self.assertEqual(len(datasets), 3)
+        self.assertEqual(len(datasets[0].trials) + len(datasets[1].trials) + len(datasets[2].trials), len(self.dataset.trials))
+        self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))
+        self.assertEqual(0, len(split_1_participants.intersection(split_3_participants)))
+        self.assertEqual(0, len(split_2_participants.intersection(split_3_participants)))
+
+
+
     def test_participant_ids_are_sequential(self):
-        participant_ids = sorted(self.ecg_dataset.participant_ids)
+        participant_ids = sorted(self.dataset.participant_ids)
         for i in range(len(participant_ids)):
-            self.assertEqual(participant_ids[i], i + 1 + self.ecg_dataset.participant_offset)
+            self.assertEqual(participant_ids[i], i + 1 + self.dataset.participant_offset)
 
     def test_media_ids_are_sequential(self):
-        media_ids = sorted(self.ecg_dataset.media_ids)
+        media_ids = sorted(self.dataset.media_ids)
         for i in range(len(media_ids)):
-            self.assertEqual(media_ids[i], i + 1 + self.ecg_dataset.media_file_offset)
+            self.assertEqual(media_ids[i], i + 1 + self.dataset.media_file_offset)
 
     def test_expected_responses(self):
-        media_ids = sorted(self.ecg_dataset.media_ids)
-        self.assertEqual(len(media_ids), len(self.ecg_dataset.expected_media_responses))
-        for media_id in media_ids:
-            self.assertIsNotNone(self.ecg_dataset.expected_media_responses[media_id-self.ecg_dataset.media_file_offset])
+        media_ids = sorted(self.dataset.media_ids)
+        self.assertEqual(len(media_ids), len(self.dataset.expected_media_responses))
+        for trial in self.dataset.trials:
+            self.assertIsNotNone(trial.expected_response)
 
 if __name__ == '__main__':
     unittest.main()

@@ -15,6 +15,7 @@
 
 import tensorflow as tf
 from tensorflow.data import AUTOTUNE
+import numpy as np
 
 from .AERDataset import AERDataset
 
@@ -31,7 +32,7 @@ class TFDatasetWrapper:
         if len(self._splits) == 1:
             self._trial_splits = [self._trial_splits]
 
-    def __call__(self, signal_type, batch_size=64, buffer_size=1000, repeat=1, n_split=0):
+    def __call__(self, signal_type, batch_size=64, buffer_size=1000, repeat=None, n_split=0):
         """
         :param batch_size: the size of the batch to generate
         :param buffer_size: the number of trials to prefetch into memory
@@ -42,17 +43,18 @@ class TFDatasetWrapper:
 
         def _trial_generator():
             for trial in self._trial_splits[n_split]:
-                yield (tf.constant(trial.load_preprocessed_signal_data(signal_type), dtype=tf.float32),
-                       tf.constant(trial.load_ground_truth(), dtype=tf.int32))
+                label = trial.load_ground_truth()
+                yield (tf.constant(trial.load_signal_data(signal_type).transpose()  , dtype=tf.float32),
+                       tf.constant(np.array([0 if label is None else label]).reshape(-1,1), dtype=tf.int32))
 
         num_channels = self._aer_dataset.get_signal_metadata(signal_type)['n_channels']
         dataset = tf.data.Dataset.from_generator(_trial_generator,
-                                                 output_signature=(tf.TensorSpec((num_channels, None), dtype=tf.float32),
-                                                                   tf.TensorSpec(shape=(), dtype=tf.int32)))
+                                                 output_signature=(tf.TensorSpec((None,num_channels), dtype=tf.float32),
+                                                                   tf.TensorSpec(shape=(None,1), dtype=tf.int32)))
 
         dataset = dataset.shuffle(buffer_size, reshuffle_each_iteration=True) \
             .cache() \
-            .repeat(count=repeat) \
+            .repeat(repeat) \
             .batch(batch_size, num_parallel_calls=AUTOTUNE, deterministic=False) \
             .prefetch(AUTOTUNE)
 

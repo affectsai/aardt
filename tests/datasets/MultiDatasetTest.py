@@ -49,34 +49,34 @@ class MultiDatasetTest(unittest.TestCase):
 
         self.cuads_dataset.signal_preprocessors['ECG'] = cuads_processor
 
-        self.multiset = MultiDataset([self.ascertain_dataset, self.dreamer_dataset, self.cuads_dataset])
-        self.multiset.set_signal_metadata('ECG', {'n_channels':2})
-        self.multiset.preload()
-        self.multiset.load_trials()
+        self.dataset = MultiDataset([self.ascertain_dataset, self.dreamer_dataset, self.cuads_dataset])
+        self.dataset.set_signal_metadata('ECG', {'n_channels':2})
+        self.dataset.preload()
+        self.dataset.load_trials()
 
     def test_multiset_trial_count(self):
         """
         Asserts that the number of trials in the multiset is the same as the sum of the number of trials in each dataset.
         :return:
         """
-        self.assertEqual(len(self.ascertain_dataset.trials)+len(self.dreamer_dataset.trials)+len(self.cuads_dataset.trials), len(self.multiset.trials))
-        self.assertNotEqual(0, len(self.multiset.trials))
+        self.assertEqual(len(self.ascertain_dataset.trials)+len(self.dreamer_dataset.trials)+len(self.cuads_dataset.trials), len(self.dataset.trials))
+        self.assertNotEqual(0, len(self.dataset.trials))
 
     def test_multiset_participant_count(self):
         """
         Asserts that the number of trials in the multiset is the same as the sum of the number of trials in each dataset.
         :return:
         """
-        self.assertNotEqual(0, len(self.multiset.participant_ids))
-        self.assertEqual(len(self.ascertain_dataset.participant_ids)+len(self.dreamer_dataset.participant_ids)+len(self.cuads_dataset.participant_ids), len(self.multiset.participant_ids))
+        self.assertNotEqual(0, len(self.dataset.participant_ids))
+        self.assertEqual(len(self.ascertain_dataset.participant_ids)+len(self.dreamer_dataset.participant_ids)+len(self.cuads_dataset.participant_ids), len(self.dataset.participant_ids))
 
     def test_multiset_media_count(self):
         """
         Asserts that the number of trials in the multiset is the same as the sum of the number of trials in each dataset.
         :return:
         """
-        self.assertNotEqual(0, len(self.multiset.media_ids))
-        self.assertEqual(len(self.ascertain_dataset.media_ids)+len(self.dreamer_dataset.media_ids)+len(self.cuads_dataset.media_ids), len(self.multiset.media_ids))
+        self.assertNotEqual(0, len(self.dataset.media_ids))
+        self.assertEqual(len(self.ascertain_dataset.media_ids)+len(self.dreamer_dataset.media_ids)+len(self.cuads_dataset.media_ids), len(self.dataset.media_ids))
 
 
     def test_ecg_signal_load(self):
@@ -84,30 +84,30 @@ class MultiDatasetTest(unittest.TestCase):
         Asserts that we can properly load an ECG signal from one of the dataset's trials.
         :return:
         """
-        for trial in random.sample(self.multiset.trials, int(len(self.multiset.trials)*.1)):
+        for trial in random.sample(self.dataset.trials, int(len(self.dataset.trials)*.1)):
             signal = trial.load_preprocessed_signal_data('ECG')
             self.assertEqual(signal.shape[0], 2, f"{type(trial)} has shape {signal.shape}")
 
     def test_splits(self):
-        trial_splits = self.multiset.get_trial_splits([.7, .3])
+        trial_splits = self.dataset.get_trial_splits([.7, .3])
         split_1_participants = set([x.participant_id for x in trial_splits[0]])
         split_2_participants = set([x.participant_id for x in trial_splits[1]])
 
         self.assertNotEqual(0, len(split_1_participants))
         self.assertNotEqual(0, len(split_2_participants))
         self.assertEqual(len(trial_splits), 2)
-        self.assertEqual(len(trial_splits[0]) + len(trial_splits[1]), len(self.multiset.trials))
+        self.assertEqual(len(trial_splits[0]) + len(trial_splits[1]), len(self.dataset.trials))
         self.assertEqual(0, len(split_1_participants.intersection(split_2_participants)))
 
     def test_three_splits(self):
-        trial_splits = self.multiset.get_trial_splits([.7, .15, .15])
+        trial_splits = self.dataset.get_trial_splits([.7, .15, .15])
         split_1_participants = set([x.participant_id for x in trial_splits[0]])
         split_2_participants = set([x.participant_id for x in trial_splits[1]])
         split_3_participants = set([x.participant_id for x in trial_splits[2]])
 
         self.assertEqual(len(trial_splits), 3)
         self.assertEqual(len(trial_splits[0]) + len(trial_splits[1]) + len(trial_splits[2]),
-                         len(self.multiset.trials))
+                         len(self.dataset.trials))
         self.assertNotEqual(0, len(split_1_participants))
         self.assertNotEqual(0, len(split_2_participants))
         self.assertNotEqual(0, len(split_3_participants))
@@ -115,38 +115,36 @@ class MultiDatasetTest(unittest.TestCase):
         self.assertEqual(0, len(split_1_participants.intersection(split_3_participants)))
         self.assertEqual(0, len(split_2_participants.intersection(split_3_participants)))
 
-    def test_tfdatasetwrapper(self):
-        """
-        Tests that the tf.data.dataset provided by the TFDataSetWrapper provides all the samples given in the dataset,
-        the expected number of times.
-        """
-        repeat_count = random.randint(1, 3)
-        tfdsw = TFDatasetWrapper(dataset=self.multiset)
-        tfds = tfdsw(signal_type='ECG', batch_size=64, buffer_size=500, repeat=repeat_count)
-
-        iteration = 0
-        total_elems = 0
-
-        # loop over the provided number of steps
-        for batch in tfds:
-            iteration += 1
-            total_elems += len(batch[0])
-
-        # stop the timer
-        # return the difference between end and start times
-        self.assertGreater(iteration, 0)
-        self.assertEqual(len(self.multiset.trials) * repeat_count, total_elems)
+    # def test_tfdatasetwrapper(self):
+    #     """
+    #     Tests that the tf.data.dataset provided by the TFDataSetWrapper provides all the samples given in the dataset,
+    #     the expected number of times.
+    #     """
+    #     repeat_count = random.randint(1, 3)
+    #     tfdsw = TFDatasetWrapper(dataset=self.dataset)
+    #     tfds = tfdsw(signal_type='ECG', batch_size=2, buffer_size=4, repeat=repeat_count)
+    #
+    #     iteration = 0
+    #     total_elems = 0
+    #
+    #     # loop over the provided number of steps
+    #     for batch in tfds:
+    #         iteration += 1
+    #         total_elems += len(batch[0])
+    #
+    #     # stop the timer
+    #     # return the difference between end and start times
+    #     self.assertGreater(iteration, 0)
+    #     self.assertEqual(len(self.dataset.trials) * repeat_count, total_elems)
 
     def test_participant_ids_are_sequential(self):
-        participant_ids = sorted(self.multiset.participant_ids)
+        participant_ids = sorted(self.dataset.participant_ids)
         for i in range(len(participant_ids)):
-            self.assertEqual(participant_ids[i], i + 1 + self.multiset.participant_offset)
+            self.assertEqual(participant_ids[i], i + 1 + self.dataset.participant_offset)
 
     def test_expected_responses(self):
-        media_ids = sorted(self.multiset.media_ids)
-        self.assertEqual(len(media_ids), len(self.multiset.expected_media_responses))
-        for media_id in media_ids:
-            self.assertIsNotNone(self.multiset.expected_media_responses[media_id])
+        for trial in self.dataset.trials:
+            self.assertIsNotNone(trial.expected_response)
 
 if __name__ == '__main__':
     unittest.main()

@@ -100,3 +100,7 @@ class AscertainTrial(AERTrial):
     @staticmethod
     def _load_gsr_signal_data(signal_data_file):
         return []
+
+    @property
+    def participant_response(self):
+        self.load_ground_truth()

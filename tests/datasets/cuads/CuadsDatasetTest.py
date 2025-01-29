@@ -36,7 +36,7 @@ class CuadsDatasetTest(unittest.TestCase):
         self.dataset.preload()
         self.dataset.load_trials()
 
-    def test_ascertain_dataset_load(self):
+    def test_cuads_dataset_load(self):
         """
         Asserts that the ASCERTAIN dataset loads the expected number of participants, movie clips, and trials.
         :return:
@@ -98,8 +98,8 @@ class CuadsDatasetTest(unittest.TestCase):
     def test_expected_responses(self):
         media_ids = sorted(self.dataset.media_ids)
         self.assertEqual(len(media_ids), len(self.dataset.expected_media_responses))
-        for media_id in media_ids:
-            self.assertIsNotNone(self.dataset.expected_media_responses[media_id])
+        for trial in self.dataset.trials:
+            self.assertIsNotNone(trial.expected_response)
 
 
 if __name__ == '__main__':

@@ -92,4 +92,7 @@ class CuadsTrial(AERTrial):
         else:
             raise ValueError('load_signal_data not implemented for signal type {}'.format(signal_type))
 
+    @property
+    def participant_response(self):
+        self.load_ground_truth()
 
