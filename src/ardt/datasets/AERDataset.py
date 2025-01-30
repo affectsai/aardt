@@ -8,7 +8,7 @@
 #       https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en
 #
 #  Unless required by applicable law or agreed to in writing, software distributed under the License
-#  is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+#  is distributed on an "AS IS" BASIS, WITHOUT WARcANTIES OR CONDITIONS OF ANY KIND, either
 #  express or implied. See the License for the specific language governing permissions and limitations
 #  under the License.
 
@@ -17,8 +17,10 @@ import abc
 from pathlib import Path
 
 import numpy as np
+import os
 
 from ardt import config
+from pandas.io.sas.sas_constants import os_maker_length
 
 
 class AERDataset(metaclass=abc.ABCMeta):
@@ -191,26 +193,43 @@ class AERDataset(metaclass=abc.ABCMeta):
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    def get_working_path(self, trial_participant_id=None, trial_media_id=None, signal_type=None, stimuli=True):
-        if trial_media_id is not None and trial_participant_id is None:
-            raise ValueError('participant_id must be given if media_id is specified.')
+    def get_working_path(self, trial_participant_id=None, trial_media_id=None, signal_type=None, stimuli=True, dataset_participant_id=None, dataset_media_id=None, dataset_media_name=None):
+        if trial_media_id is not None and (trial_participant_id is None and dataset_participant_id is None):
+            raise ValueError('Either trial_participant_id or dataset_participant_id must be given if media_id is specified.')
 
-        if signal_type is not None and trial_media_id is None:
-            raise ValueError('media_id must be given if signal_type is specified.')
+        if signal_type is not None and (trial_media_id is None and dataset_media_name is None and dataset_media_id is None):
+            raise ValueError('One of trial_media_id, dataset_media_name or dataset_media_id must be given if signal_type is specified.')
 
         if signal_type is not None and signal_type not in self.signals:
             raise ValueError('Invalid signal type: {}'.format(signal_type))
 
-        participant_id = trial_participant_id - self.participant_offset if trial_participant_id is not None else None
-        media_id = trial_media_id - self.media_file_offset if trial_media_id is not None else None
+        participant_id = None
+        if trial_participant_id is not None:
+            participant_id = f"{(trial_participant_id - self.participant_offset):02d}"
+        elif dataset_participant_id is not None:
+            participant_id = f"{dataset_participant_id:02d}"
+
+        media_id = None
+        if trial_media_id is not None:
+            media_id = f"{(trial_media_id - self.media_file_offset):02}"
+        elif dataset_media_id is not None:
+            media_id = f"{dataset_media_id:02}"
+        elif dataset_media_name is not None:
+            media_id = dataset_media_name
+
 
         result = self.get_working_dir()
         if participant_id is not None:
-            result /= f'Participant_{participant_id:02d}'
-            if media_id is not None:
-                result /= f'Media_{media_id:02d}'
-                if signal_type is not None:
-                    result /= f'{signal_type}_{"stimuli" if stimuli else "baseline"}.npy'
+            result /= f'Participant_{participant_id}'
+
+        if media_id is not None:
+            result /= f'Media_{media_id}'
+
+        if not os.path.exists(result):
+            os.makedirs(result)
+
+        if signal_type is not None:
+            result /= f'{signal_type}_{"stimuli" if stimuli else "baseline"}.npy'
 
         return result
 

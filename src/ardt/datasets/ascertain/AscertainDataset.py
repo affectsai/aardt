@@ -16,11 +16,14 @@ import os
 import logging
 from pathlib import Path
 
+import numpy as np
 import scipy
 
 from ardt import config
 from ardt.datasets import AERDataset
 from .AscertainTrial import AscertainTrial
+from datetime import datetime, timedelta
+
 
 CONFIG = config['datasets']['ascertain']
 DEFAULT_ASCERTAIN_PATH = Path(CONFIG['path'])
@@ -143,9 +146,92 @@ class AscertainDataset(AERDataset):
                 if p.is_dir():
                     self.signals.append(str(p.name).replace("Data", ""))
 
+    @staticmethod
+    def _load_eeg_signal_data(signal_data_file):
+        return []
+
+    @staticmethod
+    def _load_ecg_signal_data(signal_data_file):
+        """
+        Loads the ECG signal data from the given ASCERTAIN matlab file, and returns it as a 3xN
+        numpy array. The first row contains the signal timestamp data in UNIX Epoch time. The
+        second and third rows contain the two ECG signal channels from the dataset.
+
+        :param signal_data_file: The ECG_ClipXX.mat file for this trial
+        :return:
+        """
+        start_time_arr = signal_data_file['timeECG'][0]
+        start_time = datetime(
+            int(start_time_arr[0]),
+            int(start_time_arr[1]),
+            int(start_time_arr[2]),
+            int(start_time_arr[3]),
+            int(start_time_arr[4]),
+            int(start_time_arr[5]),
+            int(1000 * (start_time_arr[5] % 1))
+        )
+
+        def convert_to_epoch(_timestamp, _start_time):
+            return (_start_time + timedelta(milliseconds=_timestamp)).timestamp()
+
+        timeconverter = np.vectorize(lambda _ts: convert_to_epoch(_ts, start_time))
+
+        ecg_data = signal_data_file['Data_ECG']
+        left_arm_idx = 1 if (len(ecg_data[0]) < 6) else 4
+        right_arm_idx = 2 if (len(ecg_data[0]) < 6) else 5
+
+        ecg = ecg_data[:, [0, left_arm_idx, right_arm_idx]]
+        ts = np.apply_along_axis(
+            func1d=timeconverter,
+            axis=0,
+            arr=ecg[:, 0])
+        ts = ts.reshape(-1, 1)
+
+        result = np.append(ts, ecg[:, [1, 2]], axis=1)
+        return result.transpose()
+
+    @staticmethod
+    def _load_gsr_signal_data(signal_data_file):
+        return []
 
     def _preload_dataset(self):
-        pass
+        # Load ascertain data files...
+        # Map< participantId, Map< movieId, data_file_path >>
+        dt_selfreports_path = os.path.join(self.ascertain_features_path, "Dt_SelfReports.mat")
+        dt_selfreports = scipy.io.loadmat(dt_selfreports_path)
+
+        for matlab_file in self.ascertain_raw_path.rglob("*Clip*.mat"):
+            movie_folder = matlab_file.parents[0].name
+            signal_folder = matlab_file.parents[1].name
+
+            signal_type = signal_folder.replace("Data", "")
+            if signal_type not in self._signals:
+                continue
+
+            dataset_participant_id = int(movie_folder.split("_P")[1])  # + self.participant_offset
+            dataset_movie_id = int(matlab_file.name.upper().replace(f'{signal_type}_CLIP', '').replace('.MAT', ''))
+            matfile_path = matlab_file.resolve()
+
+            if signal_type not in self._signals:
+                continue
+
+            matlab_data = scipy.io.loadmat(matfile_path)
+
+            data = None
+            if signal_type == 'ECG':
+                data = self._load_ecg_signal_data(matlab_data)
+            elif signal_type == 'GSR':
+                data = self._load_gsr_signal_data(matlab_data)
+            elif signal_type == 'EEG':
+                data = self._load_eeg_signal_data(matlab_data)
+
+            preload_data_path = self.get_working_path(
+                dataset_participant_id=dataset_participant_id,
+                dataset_media_id=dataset_movie_id,
+                signal_type=signal_type)
+            print(preload_data_path)
+            np.save(preload_data_path, data)
+
 
     def load_trials(self):
         # Load ascertain data files...

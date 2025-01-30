@@ -73,6 +73,21 @@ default_signal_metadata = {
             }
         }
 
+CUADS_COLUMN_MAP = {
+    "SEGMENT_ECG_TIMESTAMP": 0,
+    "SEGMENT_GSR_TIMESTAMP": 1,
+    "SEGMENT_ECG_LARA":     15,
+    "SEGMENT_ECG_LLLA":     16,
+    "SEGMENT_ECG_LLRA":     17,
+    "SEGMENT_ECG_HR_LARA":  19,
+    "SEGMENT_ECG_HR_LLLA":  20,
+    "SEGMENT_ECG_HR_LLRA":  21,
+    "SEGMENT_GSR_SC":       37,
+    "SEGMENT_GSR_SR":       38,
+    "SEGMENT_PPG":          45,
+    "SEGMENT_PPG_IBI":      46,
+    "SEGMENT_PPG_HR":       47,
+}
 class CuadsDataset(AERDataset):
     def __init__(self, dataset_path=None, participant_offset=0, mediafile_offset=0):
         """
@@ -110,7 +125,61 @@ class CuadsDataset(AERDataset):
 
 
     def _preload_dataset(self):
-        pass
+        all_trials = {}
+        for p in range(CUADS_MAX_PARTICIPANT_NUM):
+            cuads_participant_number = p + 1
+            participant_id = f'CUADS_{cuads_participant_number:03}'
+            participant_folder = os.path.join(self.dataset_path, participant_id)
+            response_file = os.path.join(participant_folder, 'responses.csv')
+            if not os.path.exists(response_file):
+                continue
+
+            if cuads_participant_number not in self.participant_id_map:
+                self.participant_id_map[cuads_participant_number] = len(self.participant_id_map) + 1
+            dataset_participant_number = self.participant_id_map[cuads_participant_number] #+ self.participant_offset
+
+
+            # Load this participant's responses...
+            responses = np.loadtxt(response_file, delimiter=',', dtype=str, skiprows=1)
+            for response_number, response in enumerate(responses):
+                movie_name = response[0]
+                segmented_data_filepath = os.path.join(participant_folder, 'segmented', f'{movie_name}_sessiondata.csv')
+                segment_data = np.loadtxt(segmented_data_filepath, delimiter=',', dtype=str, skiprows=1)
+
+                path = self.get_working_path(dataset_participant_id=dataset_participant_number, dataset_media_name=movie_name, signal_type='ECG')
+                data = np.array(segment_data[:, [CUADS_COLUMN_MAP["SEGMENT_ECG_TIMESTAMP"],
+                                                 CUADS_COLUMN_MAP["SEGMENT_ECG_LARA"],
+                                                 CUADS_COLUMN_MAP["SEGMENT_ECG_LLLA"],
+                                                 CUADS_COLUMN_MAP["SEGMENT_ECG_LLRA"]]], dtype=float)
+                data = data.transpose()
+                np.save(path, data)
+
+                path = self.get_working_path(dataset_participant_id=dataset_participant_number, dataset_media_name=movie_name, signal_type='ECGHR')
+                data = np.array(segment_data[:, [CUADS_COLUMN_MAP["SEGMENT_ECG_TIMESTAMP"],
+                                                 CUADS_COLUMN_MAP["SEGMENT_ECG_HR_LARA"],
+                                                 CUADS_COLUMN_MAP["SEGMENT_ECG_HR_LLLA"],
+                                                 CUADS_COLUMN_MAP["SEGMENT_ECG_HR_LLRA"]]], dtype=float)
+                data = data.transpose()
+                np.save(path, data)
+
+                path = self.get_working_path(dataset_participant_id=dataset_participant_number, dataset_media_name=movie_name, signal_type='GSR')
+                data = np.array(segment_data[:, [CUADS_COLUMN_MAP["SEGMENT_GSR_TIMESTAMP"],
+                                                 CUADS_COLUMN_MAP["SEGMENT_GSR_SC"],
+                                                 CUADS_COLUMN_MAP["SEGMENT_GSR_SR"]]], dtype=float)
+                data = data.transpose()
+                np.save(path, data)
+
+                path = self.get_working_path(dataset_participant_id=dataset_participant_number, dataset_media_name=movie_name, signal_type='PPG')
+                data = np.array(segment_data[:, [CUADS_COLUMN_MAP["SEGMENT_GSR_TIMESTAMP"],
+                                                 CUADS_COLUMN_MAP["SEGMENT_PPG"]]], dtype=float)
+                data = data.transpose()
+                np.save(path, data)
+
+                path = self.get_working_path(dataset_participant_id=dataset_participant_number, dataset_media_name=movie_name, signal_type='PPGHR')
+                data = np.array(segment_data[:, [CUADS_COLUMN_MAP["SEGMENT_GSR_TIMESTAMP"],
+                                                 CUADS_COLUMN_MAP["SEGMENT_PPG_HR"]]], dtype=float)
+                data = data.transpose()
+                np.save(path, data)
 
     def load_trials(self):
         response_movie_name = 0
@@ -145,7 +214,6 @@ class CuadsDataset(AERDataset):
                 self.participant_id_map[cuads_participant_number] = len(self.participant_id_map) + 1
             dataset_participant_number = self.participant_id_map[cuads_participant_number] #+ self.participant_offset
 
-
             self.participant_ids.add(dataset_participant_number)
             if participant_id not in all_trials.keys():
                 all_trials[participant_id] = {}
@@ -166,7 +234,7 @@ class CuadsDataset(AERDataset):
                 self.media_ids.add(movie_id)
                 self.media_index_to_name[movie_id] = movie_name
 
-                trial = CuadsTrial(self, segmented_data_filepath,
+                trial = CuadsTrial(self,
                                dataset_participant_number,
                                movie_id,
                                _to_quadrant(float(response[response_arousal]), float(response[response_valence])),

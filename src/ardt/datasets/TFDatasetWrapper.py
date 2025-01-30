@@ -31,6 +31,7 @@ class TFDatasetWrapper:
         self._trial_splits = self._aer_dataset.get_trial_splits(self._splits)
         if len(self._splits) == 1:
             self._trial_splits = [self._trial_splits]
+        print("v15")
 
     def __call__(self, signal_type, batch_size=64, buffer_size=1000, repeat=None, n_split=0):
         """
@@ -52,10 +53,29 @@ class TFDatasetWrapper:
                                                  output_signature=(tf.TensorSpec((None,num_channels), dtype=tf.float32),
                                                                    tf.TensorSpec(shape=(None,1), dtype=tf.int32)))
 
-        dataset = dataset.shuffle(buffer_size, reshuffle_each_iteration=True) \
-            .cache() \
+        # dataset = dataset \
+        #     .shuffle(buffer_size, reshuffle_each_iteration=True) \
+        #     .repeat(repeat) \
+        #     .take(buffer_size) \
+        #     .cache() \
+        #     .batch(batch_size, num_parallel_calls=AUTOTUNE, deterministic=False) \
+        #     .prefetch(AUTOTUNE)
+        options = tf.data.Options()
+        options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.OFF
+
+        ## NOTES:
+        #   1) Caching freezes the dataset order so we have to do that before shuffling.
+        #   2) We want to shuffle before we batch so we get random batches
+        #
+        ##   - Caching before repeat() may lead to truncated dataset caching, causing unexpected behavior in repeated epochs.
+
+        # Set dataset to repeat, then cache. After cache, shuffle the items and build batches. Prefetch the batches.
+        dataset = dataset \
+            .cache('/var/tmp/tfdsw.cache') \
+            .shuffle(buffer_size=max(batch_size*4, buffer_size), reshuffle_each_iteration=True) \
             .repeat(repeat) \
-            .batch(batch_size, num_parallel_calls=AUTOTUNE, deterministic=False) \
-            .prefetch(AUTOTUNE)
+            .batch(batch_size, num_parallel_calls=tf.data.AUTOTUNE, drop_remainder=True) \
+            .prefetch(tf.data.AUTOTUNE) \
+            .with_options(options)
 
         return dataset
