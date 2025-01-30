@@ -21,6 +21,7 @@ import os
 
 from ardt import config
 from pandas.io.sas.sas_constants import os_maker_length
+import random
 
 
 class AERDataset(metaclass=abc.ABCMeta):
@@ -408,12 +409,29 @@ class AERDataset(metaclass=abc.ABCMeta):
         else:
             self._signal_metadata[signal_type].update(metadata)
 
-    def get_balanced_dataset(self):
+    def get_balanced_dataset(self, oversample=True):
+        '''
+        Returns a balanced wrapper around this dataset that ensures the number of trials represented in each quadrant
+        is the same. If oversample=True, every quadrant will be oversampled to increase its size to the maximum number
+        of trials per quadrant in the original dataset. If oversample=False then each quadrant will be undersampled to
+        reduce its size to the smallest number of trials per quadrant in the original dataset.
+
+        The balanced datasets trials will be randomized.
+
+        NOTE: this method does not consider the underlying signal data... so if you are working with a particular signal
+        type, e.g., ECG, in a MultiDataset that combines CUADS and ASCERTAIN, then the number of signals per quadrant
+        may still be unbalanced because CUADS has 3 ECG channels per trial, where ASCERTAIN has 2. The effect of this
+        should be minimal due to random sampling of trials across the MultiSet when creating the Balanced subset.
+
+        :param oversample:
+        :return:
+        '''
         return BalancedWrapperDataset(self,
                                       participant_offset=self.participant_offset,
                                       mediafile_offset=self.media_file_offset,
                                       signal_metadata=self._signal_metadata,
-                                      expected_responses=self._expected_responses)
+                                      expected_responses=self._expected_responses,
+                                      oversample=oversample)
 
 class SplitWrapperDataset(AERDataset):
     """
@@ -442,13 +460,15 @@ class SplitWrapperDataset(AERDataset):
 
 class BalancedWrapperDataset(AERDataset):
     """
-    This is a wrapper class used to create a meta-dataset around a set of trials for a split...
+    This is a wrapper class used to create a meta-dataset around a set of trials for a split... it either over or
+    undersamples trials from different quadrants to create a dataset that has an equal number of trials per quadrant.
     """
     def __init__(self, dataset, participant_offset=0, mediafile_offset=0, signal_metadata=None, expected_responses=None):
         super().__init__(participant_offset=participant_offset,
                          mediafile_offset=mediafile_offset,
                          signal_metadata=signal_metadata,
-                         expected_responses=expected_responses)
+                         expected_responses=expected_responses,
+                         oversample = True)
 
         trial_by_quad = {
             1: [],
@@ -464,17 +484,24 @@ class BalancedWrapperDataset(AERDataset):
         }
 
         for trial in dataset.trials:
-            counts[trial.load_ground_truth()] += 1
+            q = trial.load_ground_truth()
+            if q == 0 or q > 4:
+                continue
+
+            counts[q] += 1
             trial_by_quad[trial.load_ground_truth()].append(trial)
 
-        print(list(counts.values()))
-        minquad = np.min(np.array(list(counts.values())))
-        print(f"minquad = {minquad}")
+        quad_size = np.max(np.array(list(counts.values()))) if oversample is True else np.min(np.array(list(counts.values())))
 
         self._all_trials = []
         for i in np.arange(1,5):
-            print(i)
-            self._all_trials.extend(np.random.choice(trial_by_quad[i], size=minquad, replace=False))
+            print(f"Choosing {maxquad} trials from quadrant {i}")
+            self._all_trials.extend(
+                np.random.choice(trial_by_quad[i],      # quadrant to select from
+                                 size=quad_size,        # target size per quadrant
+                                 replace=oversample     # if oversample is true, we need replace=True.
+                 ))
+        random.shuffle(self._all_trials)
 
         self._media_names_by_id = {}
 
