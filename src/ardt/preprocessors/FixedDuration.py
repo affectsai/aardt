@@ -34,7 +34,7 @@ class FixedDurationPreprocessor(SignalPreprocessor):
         super().__init__(parent_preprocessor, child_preprocessor)
         self.signal_duration = signal_duration
         self.sample_rate = sample_rate
-        self.padding_value = padding_value
+        self.default_padding_value = padding_value
 
     def process_signal(self, signal):
         """
@@ -51,10 +51,10 @@ class FixedDurationPreprocessor(SignalPreprocessor):
         if num_samples >= target_samples:
             return signal[:, np.arange(num_samples - target_samples, num_samples)]
         else:
-            if self.padding_value is None:
-                self.padding_value = np.mean(signal, axis=1)
-            elif np.isscalar(self.padding_value):
-                self.padding_value = np.ones(num_channels) * self.padding_value
-
+            padding_value = self.default_padding_value
+            if padding_value is None:
+                padding_value = np.mean(signal, axis=1)
+            elif np.isscalar(padding_value):
+                padding_value = np.ones(num_channels) * padding_value
             return np.concatenate([np.ones((num_channels, target_samples - num_samples)) *
-                                   self.padding_value.reshape(-1, 1), signal], axis=1)
+                                   padding_value.reshape(-1, 1), signal], axis=1)

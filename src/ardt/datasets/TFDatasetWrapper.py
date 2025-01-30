@@ -22,7 +22,9 @@ from .AERDataset import AERDataset
 
 class TFDatasetWrapper:
     """
-    A utility class that wraps an AERDataset in a tf.data.Dataset for use in model training.
+    A utility class that wraps an AERDataset in a tf.data.Dataset for use in model training. You can use this
+    directly if you like, but it is probably much more useful as a template for you to customize your own input
+    pipelines...
     """
 
     def __init__(self, dataset: AERDataset, splits=None):
