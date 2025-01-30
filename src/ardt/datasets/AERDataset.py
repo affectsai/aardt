@@ -408,6 +408,13 @@ class AERDataset(metaclass=abc.ABCMeta):
         else:
             self._signal_metadata[signal_type].update(metadata)
 
+    def get_balanced_dataset(self):
+        return BalancedWrapperDataset(self,
+                                      participant_offset=self.participant_offset,
+                                      mediafile_offset=self.media_file_offset,
+                                      signal_metadata=self._signal_metadata,
+                                      expected_responses=self._expected_responses)
+
 class SplitWrapperDataset(AERDataset):
     """
     This is a wrapper class used to create a meta-dataset around a set of trials for a split...
@@ -419,6 +426,56 @@ class SplitWrapperDataset(AERDataset):
                        expected_responses=expected_responses)
 
         self._all_trials = trials
+        self._media_names_by_id = {}
+
+        for trial in self._all_trials:
+            self._media_names_by_id[trial.media_id-mediafile_offset] = trial.media_name
+
+    def _preload_dataset(self):
+        pass
+
+    def load_trials(self):
+        pass
+
+    def get_media_name_by_movie_id(self, movie_id):
+        return self._media_names_by_id[movie_id]
+
+class BalancedWrapperDataset(AERDataset):
+    """
+    This is a wrapper class used to create a meta-dataset around a set of trials for a split...
+    """
+    def __init__(self, dataset, participant_offset=0, mediafile_offset=0, signal_metadata=None, expected_responses=None):
+        super().__init__(participant_offset=participant_offset,
+                         mediafile_offset=mediafile_offset,
+                         signal_metadata=signal_metadata,
+                         expected_responses=expected_responses)
+
+        trial_by_quad = {
+            1: [],
+            2: [],
+            3: [],
+            4: []
+        }
+        counts = {
+            1: 0,
+            2: 0,
+            3: 0,
+            4: 0
+        }
+
+        for trial in dataset.trials:
+            counts[trial.load_ground_truth()] += 1
+            trial_by_quad[trial.load_ground_truth()].append(trial)
+
+        print(list(counts.values()))
+        minquad = np.min(np.array(list(counts.values())))
+        print(f"minquad = {minquad}")
+
+        self._all_trials = []
+        for i in np.arange(1,5):
+            print(i)
+            self._all_trials.extend(np.random.choice(trial_by_quad[i], size=minquad, replace=False))
+
         self._media_names_by_id = {}
 
         for trial in self._all_trials:
