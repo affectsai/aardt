@@ -463,12 +463,11 @@ class BalancedWrapperDataset(AERDataset):
     This is a wrapper class used to create a meta-dataset around a set of trials for a split... it either over or
     undersamples trials from different quadrants to create a dataset that has an equal number of trials per quadrant.
     """
-    def __init__(self, dataset, participant_offset=0, mediafile_offset=0, signal_metadata=None, expected_responses=None):
+    def __init__(self, dataset, participant_offset=0, mediafile_offset=0, signal_metadata=None, expected_responses=None, oversample = True):
         super().__init__(participant_offset=participant_offset,
                          mediafile_offset=mediafile_offset,
                          signal_metadata=signal_metadata,
-                         expected_responses=expected_responses,
-                         oversample = True)
+                         expected_responses=expected_responses )
 
         trial_by_quad = {
             1: [],
@@ -495,7 +494,7 @@ class BalancedWrapperDataset(AERDataset):
 
         self._all_trials = []
         for i in np.arange(1,5):
-            print(f"Choosing {maxquad} trials from quadrant {i}")
+            print(f"Choosing {quad_size} trials from quadrant {i}")
             self._all_trials.extend(
                 np.random.choice(trial_by_quad[i],      # quadrant to select from
                                  size=quad_size,        # target size per quadrant
