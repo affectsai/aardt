@@ -47,13 +47,13 @@ expected_classifications = {
             'video_cats_f': 1,
             'video_138': 3,
             'video_69': 2,
-            'video_dallas_f': 0,
-            'video_detroit_f': 0,
+            'video_dallas_f': 4,
+            'video_detroit_f': 4,
             'video_53': 4,
             'video_58': 4,
             'video_30': 2,
             'video_earworm_f': 2,
-            'video_newyork_f': 0,
+            'video_newyork_f': 4,
             'video_90': 1,
             'video_107': 2
         }

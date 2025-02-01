@@ -22,6 +22,7 @@ import os
 from ardt import config
 from pandas.io.sas.sas_constants import os_maker_length
 import random
+from itertools import zip_longest, cycle
 
 
 class AERDataset(metaclass=abc.ABCMeta):
@@ -301,7 +302,7 @@ class AERDataset(metaclass=abc.ABCMeta):
 
     def get_dataset_splits(self, splits=None):
         split_trials = self.get_trial_splits(splits)
-        return [SplitWrapperDataset(t,
+        return [TrialWrapperDataset(t,
                                     self.participant_offset,
                                     self.media_file_offset,
                                     self._signal_metadata,
@@ -409,7 +410,7 @@ class AERDataset(metaclass=abc.ABCMeta):
         else:
             self._signal_metadata[signal_type].update(metadata)
 
-    def get_balanced_dataset(self, oversample=True):
+    def get_balanced_dataset(self, oversample=True, use_expected_response=False):
         '''
         Returns a balanced wrapper around this dataset that ensures the number of trials represented in each quadrant
         is the same. If oversample=True, every quadrant will be oversampled to increase its size to the maximum number
@@ -431,9 +432,38 @@ class AERDataset(metaclass=abc.ABCMeta):
                                       mediafile_offset=self.media_file_offset,
                                       signal_metadata=self._signal_metadata,
                                       expected_responses=self._expected_responses,
-                                      oversample=oversample)
+                                      oversample=oversample,
+                                      use_expected_response=use_expected_response)
 
-class SplitWrapperDataset(AERDataset):
+    def get_interleaved_trial_dataset(self, use_expected_responses=False):
+        trials_by_quad = {1: [], 2: [], 3: [], 4: []}
+        for trial in self._all_trials:
+            quad = trial.expected_response if use_expected_responses else trial.load_ground_truth()
+            if quad == 0 or quad > 4:
+                continue
+            trials_by_quad[quad].append(trial)
+
+        for l in trials_by_quad.values():
+            random.shuffle(l)
+        trial_lists = list(trials_by_quad.values())
+
+        # Find the max length of any list
+        max_length = max(len(lst) for lst in trial_lists)
+        oversampled_lists = [ np.random.choice( lst, max_length, replace=True ) for lst in trial_lists ]
+
+        def merge(lists):
+            merged_list = [item for group in zip_longest(*lists, fillvalue=None) for item in group if item is not None]
+            return merged_list
+
+        return TrialWrapperDataset(
+            merge(oversampled_lists),
+            participant_offset=self.participant_offset,
+            mediafile_offset=self.media_file_offset,
+            signal_metadata=self._signal_metadata,
+            expected_responses=self._expected_responses)
+
+
+class TrialWrapperDataset(AERDataset):
     """
     This is a wrapper class used to create a meta-dataset around a set of trials for a split...
     """
@@ -463,7 +493,7 @@ class BalancedWrapperDataset(AERDataset):
     This is a wrapper class used to create a meta-dataset around a set of trials for a split... it either over or
     undersamples trials from different quadrants to create a dataset that has an equal number of trials per quadrant.
     """
-    def __init__(self, dataset, participant_offset=0, mediafile_offset=0, signal_metadata=None, expected_responses=None, oversample = True):
+    def __init__(self, dataset, participant_offset=0, mediafile_offset=0, signal_metadata=None, expected_responses=None, oversample = True, use_expected_response=False):
         super().__init__(participant_offset=participant_offset,
                          mediafile_offset=mediafile_offset,
                          signal_metadata=signal_metadata,
@@ -483,18 +513,17 @@ class BalancedWrapperDataset(AERDataset):
         }
 
         for trial in dataset.trials:
-            q = trial.load_ground_truth()
+            q = trial.expected_response if use_expected_response else trial.load_ground_truth()
             if q == 0 or q > 4:
                 continue
 
             counts[q] += 1
-            trial_by_quad[trial.load_ground_truth()].append(trial)
+            trial_by_quad[q].append(trial)
 
         quad_size = np.max(np.array(list(counts.values()))) if oversample is True else np.min(np.array(list(counts.values())))
 
         self._all_trials = []
         for i in np.arange(1,5):
-            print(f"Choosing {quad_size} trials from quadrant {i}")
             self._all_trials.extend(
                 np.random.choice(trial_by_quad[i],      # quadrant to select from
                                  size=quad_size,        # target size per quadrant
@@ -515,3 +544,4 @@ class BalancedWrapperDataset(AERDataset):
 
     def get_media_name_by_movie_id(self, movie_id):
         return self._media_names_by_id[movie_id]
+

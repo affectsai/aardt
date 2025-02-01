@@ -76,7 +76,9 @@ class SignalPreprocessor(metaclass=ABCMeta):
 
         result = signal
         result = self._parent_preprocessor(result, self.context) if self._parent_preprocessor is not None else result
+        # print(f"Executing preprocessor: {type(self)}. Before: shape={result.shape}, min: {result.min()}, max: {result.max()}")
         result = self.process_signal(result)
+        # print(f"Done executing preprocessor: {type(self)}. After: hape={result.shape}, min: {result.min()}, max: {result.max()}")
         result = self._child_preprocessor(result, self.context) if self._child_preprocessor is not None else result
 
         context.update(self.context)
