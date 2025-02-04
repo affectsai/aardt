@@ -56,6 +56,9 @@ class AERTrial(abc.ABC):
         signal_data = self.load_raw_signal_data(signal_type)
         if signal_type in self.signal_preprocessors.keys():
             signal_data = self.signal_preprocessors[signal_type](signal_data)
+        else:
+            pass
+            #print("NO SIGNAL PREPROCESSOR FOUND")
         return signal_data
 
     @abc.abstractmethod

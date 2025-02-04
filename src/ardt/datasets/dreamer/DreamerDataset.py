@@ -57,10 +57,11 @@ expected_classifications = {
             18: 2,  # The Departed
         }
 
-default_signal_metadata = { 'ECG': {
-                'sample_rate': 256,
-                'n_channels': 2,
-            }
+default_signal_metadata = {
+    'ECG': {
+        'sample_rate': 256,
+        'n_channels': 2,
+    }
 }
 
 class DreamerDataset(AERDataset):
@@ -106,9 +107,6 @@ class DreamerDataset(AERDataset):
             raise ValueError('Path to DREAMER dataset does not exist: {}'.format(self._dataset_file.resolve()))
 
         self.media_index_to_name = {}           # Maps media index back to name
-
-    def get_signal_metadata(self, signal_type):
-        return {}
 
     def _preload_dataset(self):
         participant_id = 0
