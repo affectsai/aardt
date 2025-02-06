@@ -1,4 +1,16 @@
-#  Copyright (c) 2024. Affects AI LLC
+#  Copyright (c) 2024-2025. Affects AI LLC
+#
+#  Licensed under the Creative Common CC BY-NC-SA 4.0 International License (the "License");
+#  you may not use this file except in compliance with the License. The full text of the License is
+#  provided in the included LICENSE file. If this file is not available, you may obtain a copy of the
+#  License at
+#
+#       https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en
+#
+#  Unless required by applicable law or agreed to in writing, software distributed under the License
+#  is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+#  express or implied. See the License for the specific language governing permissions and limitations
+#  under the License.
 #
 #  Licensed under the Creative Common CC BY-NC-SA 4.0 International License (the "License");
 #  you may not use this file except in compliance with the License. The full text of the License is
@@ -17,7 +29,7 @@ import tensorflow as tf
 from tensorflow.data import AUTOTUNE
 import numpy as np
 
-from .AERDataset import AERDataset
+from ardt.datasets.AERDataset import AERDataset
 
 
 class TFDatasetWrapper:
@@ -25,6 +37,9 @@ class TFDatasetWrapper:
     A utility class that wraps an AERDataset in a tf.data.Dataset for use in model training. You can use this
     directly if you like, but it is probably much more useful as a template for you to customize your own input
     pipelines...
+
+    Note that this class utilizes tf.data.Dataset.from_generator, which is not idea for multi-gpu or multi-worker
+    setups, and is not compatible with graph application. See TFRecordDatasetGenerator for a better alternative
     """
 
     def __init__(self, dataset: AERDataset, splits=None):
